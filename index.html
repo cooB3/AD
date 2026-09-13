@@ -2322,7 +2322,7 @@
         }
         
         (function checkAccessExpiry() {
-    const HOURS_ALLOWED = 24;
+    const HOURS_ALLOWED = 1;
     const EXPIRY_KEY = 'app_access_expiry_time';
     const now = new Date().getTime();
 
@@ -2336,7 +2336,7 @@
             document.body.innerHTML = `
                 <div style="text-align:center; padding: 50px; font-family: sans-serif;">
                     <h1 style="color: #e74c3c;">انتهت الفترة التجريبية!</h1>
-                    <p>عفواً، انتهت صلاحية الرابط على هذا الجهاز.</p>
+                    <p>عفواً، انتهت الفترة التحربية .</p>
                 </div>
             `;
         });

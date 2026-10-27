@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>نظام إدارة الحجوزات</title>
-<link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -63,8 +62,8 @@ th,td{padding:11px 9px;border-bottom:1px solid #f1f2f6;text-align:right;font-siz
 #cfgrc{display:none;background:#f1f2f6;padding:12px;border-radius:8px;margin-bottom:12px}
 #cfgrc textarea{margin-bottom:6px;font-size:11px}
 .gear{background:#f1f2f6;border:1px solid #dcdde1;border-radius:6px;padding:6px 10px;cursor:pointer}
-#tl{position:fixed;inset:0;background:linear-gradient(135deg,#1e272e,#2f3640);display:flex;align-items:center;justify-content:center;z-index:200;padding:16px}
-.lb{background:#fff;border-radius:16px;padding:26px;width:100%;max-width:340px;text-align:center}.lb h2{color:var(--or);margin-bottom:4px}.lb p{font-size:12px;color:#718093;margin-bottom:16px}.lb input{margin-bottom:10px}.err{color:#c62828;font-size:12px;min-height:18px}
+#tl{position:fixed;inset:0;background:linear-gradient(135deg,#1e272e,#2f3640);display:flex;justify-content:center;z-index:200;padding:16px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.lb{background:#fff;border-radius:16px;padding:26px;width:100%;max-width:340px;text-align:center;margin:auto}.lb h2{color:var(--or);margin-bottom:4px}.lb p{font-size:12px;color:#718093;margin-bottom:16px}.lb input{margin-bottom:10px}.err{color:#c62828;font-size:12px;min-height:18px}
 #tl{align-items:flex-start!important}.lb{margin:auto}
 </style>
 </head>
@@ -72,10 +71,11 @@ th,td{padding:11px 9px;border-bottom:1px solid #f1f2f6;text-align:right;font-siz
 <div id="tl"><div class="lb">
  <h2 id="lgT"></h2><p id="lgS" style="margin-bottom:16px"></p>
  <div id="loginBox">
-  <input id="tu" placeholder="اسم المستخدم" autocomplete="username">
+  <input id="tu" type="email" placeholder="البريد الإلكتروني" autocomplete="username" dir="ltr">
   <div style="position:relative"><input id="tp" type="password" placeholder="كلمة المرور" autocomplete="current-password" style="padding-left:42px"><button type="button" onclick="togPw()" id="eye" style="position:absolute;left:8px;top:7px;background:none;border:0;cursor:pointer;color:#718093;font-size:16px"><i class="fa-solid fa-eye"></i></button></div>
   <label style="display:flex;align-items:center;gap:6px;font-size:12px;margin:2px 0 8px;cursor:pointer"><input type="checkbox" id="tr" checked style="width:auto"> تذكرني على هذا الجهاز</label>
   <div class="err" id="te"></div><button class="btn" onclick="tLogin()">دخول</button>
+  <div style="margin-top:8px"><a href="#" onclick="forgot();return false" style="font-size:12px;color:#2e86de">نسيت كلمة المرور؟</a></div>
   <button class="btn b2" style="margin-top:8px" onclick="showReg(1)">حساب جديد</button>
  </div>
  <div id="regBox" style="display:none">
@@ -83,8 +83,8 @@ th,td{padding:11px 9px;border-bottom:1px solid #f1f2f6;text-align:right;font-siz
   <select id="rT" style="margin-bottom:10px"><option>شاليه</option><option>استراحة</option><option>مخيم</option><option>خيمة</option><option>مزرعة</option><option>قاعة</option></select>
   <input id="rO" placeholder="اسمك الكامل">
   <div class="ph" style="margin-bottom:10px"><span>+966</span><input id="rP" type="tel" maxlength="10" placeholder="5xxxxxxxx"></div>
-  <input id="rE" type="email" placeholder="البريد الإلكتروني (اختياري)" dir="ltr">
-  <input id="rU" placeholder="اسم المستخدم" dir="ltr" autocomplete="off"><input id="rW" type="password" placeholder="كلمة المرور">
+  <input id="rE" type="email" placeholder="البريد الإلكتروني (للدخول واستعادة كلمة المرور)" dir="ltr">
+  <input id="rW" type="password" placeholder="كلمة المرور (6 أحرف على الأقل)">
   <select id="rPl" style="margin-bottom:10px"></select>
   <div class="err" id="re"></div><button class="btn b3" onclick="regSubmit()">إرسال طلب التسجيل</button>
   <button class="btn b5" style="margin-top:8px" onclick="showReg(0)">لدي حساب</button>
@@ -253,7 +253,7 @@ th,td{padding:11px 9px;border-bottom:1px solid #f1f2f6;text-align:right;font-siz
    <p style="font-size:11px;color:#718093;margin-bottom:10px">رقم المنشأة: <b id="aCode"></b> | الباقة والاشتراك يديرهما مزوّد الخدمة.</p>
    <button class="btn b3" onclick="saveFac()">حفظ بيانات المنشأة</button></div>
   <div class="card"><h3>بيانات الدخول الخاصة بي</h3>
-   <div class="grid"><div><label>الاسم</label><input id="uName"></div><div><label>اسم المستخدم</label><input id="uUser" dir="ltr"></div>
+   <div class="grid"><div><label>الاسم</label><input id="uName"></div><div><label>البريد الإلكتروني (للدخول)</label><input id="uUser" dir="ltr" readonly style="background:#f1f2f6"></div>
    <div><label>كلمة المرور الحالية</label><input id="uOld" type="password"></div><div><label>كلمة مرور جديدة (اختياري)</label><input id="uNew" type="password"></div></div>
    <button class="btn b2" onclick="saveMe()">حفظ بيانات الدخول</button></div>
   <div class="card" id="brandCard" style="display:none"><h3>هوية المنشأة</h3><label>اللون الرئيسي</label><input id="brC" type="color" style="height:42px"><button class="btn b3" style="margin-top:8px" onclick="saveBrand()">حفظ الهوية</button></div>
@@ -294,72 +294,98 @@ th,td{padding:11px 9px;border-bottom:1px solid #f1f2f6;text-align:right;font-siz
 
 <div id="repPrint" style="display:none;padding:20px;direction:rtl;background:#fff"><h2 style="text-align:center;color:#ff9f43">التقرير المالي</h2><div id="repPdfBody"></div></div>
 
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
 const $=id=>document.getElementById(id);
 const MN=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
 const load=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}};
-const SA=(()=>{try{return JSON.parse(localStorage.getItem('sa_data'))||{}}catch(e){return{}}})();
+const SA=(()=>{try{return JSON.parse(localStorage.getItem('sa_cache'))||{}}catch(e){return{}}})();
+const FBC={apiKey:"AIzaSyDFuxx-E0SjbO38KiwOEGNpTSAXtTxS60E",authDomain:"hojzat-97458.firebaseapp.com",databaseURL:"https://hojzat-97458-default-rtdb.firebaseio.com",projectId:"hojzat-97458",storageBucket:"hojzat-97458.firebasestorage.app",messagingSenderId:"980701827101",appId:"1:980701827101:web:ef4db168c92234e7b0b6f4"};
+firebase.initializeApp(FBC);const auth=firebase.auth(),db=firebase.database();
+const fbErr=e=>({'auth/invalid-credential':'بيانات الدخول غير صحيحة','auth/wrong-password':'بيانات الدخول غير صحيحة','auth/user-not-found':'بيانات الدخول غير صحيحة','auth/invalid-email':'البريد الإلكتروني غير صحيح','auth/email-already-in-use':'هذا البريد مسجل مسبقاً','auth/weak-password':'كلمة المرور ضعيفة (6 أحرف على الأقل)','auth/too-many-requests':'محاولات كثيرة، حاول لاحقاً','auth/network-request-failed':'تعذر الاتصال بالإنترنت','auth/requires-recent-login':'أعد تسجيل الدخول ثم حاول','PERMISSION_DENIED':'لا تملك صلاحية لهذا الإجراء'}[e.code]||('تعذر التنفيذ: '+(e.code||e.message)));
+
 const qT=new URLSearchParams(location.search).get('tenant');
-if(qT&&sessionStorage.getItem('sa'))sessionStorage.setItem('tid',qT);
-if(!sessionStorage.getItem('tid')){try{const r=JSON.parse(localStorage.getItem('cruise_remember'));if(r){const u=(SA.users||[]).find(x=>x.id==r.uid&&x.on),t=u&&(SA.tenants||[]).find(x=>x.id==u.tenant);if(t&&t.on&&t.end>=today()){sessionStorage.setItem('tid',String(t.id));sessionStorage.setItem('uid',String(u.id))}}}catch(e){}}
 const TID=sessionStorage.getItem('tid');
 const TEN=(SA.tenants||[]).find(t=>String(t.id)===TID);
 const NAME=TEN?TEN.name:'';
 const ME=(SA.users||[]).find(u=>String(u.id)===sessionStorage.getItem('uid')&&u.tenant==TID)||(SA.users||[]).find(u=>u.tenant==TID&&u.role==='owner');
 const PL=(SA.plans||[]).find(p=>TEN&&p.id==TEN.plan);
 const HAS=k=>!!sessionStorage.getItem('sa')||!!(PL&&PL.f&&PL.f[k])||!!(TEN&&(TEN.addons||[]).includes(k));
-const persistSA=()=>localStorage.setItem('sa_data',JSON.stringify(SA));
+const persistSA=()=>localStorage.setItem('sa_cache',JSON.stringify(SA));
 $('tl').style.display=TEN?'none':'flex';
-(function(){const esc=x=>String(x??'').replace(/[&<>"']/g,'');const st=Object.assign({title:'مرحباً بك في نظام حجوزاتي المطوّر',sub:'لخدمة الشاليهات والاستراحات',copy:'جميع الحقوق محفوظة © 2026',ver:'v1.0',renew:'لتجديد الاشتراك أو الاستفسار تواصل معنا',phone:''},SA.settings||{});
+function fillLogin(S){const esc=x=>String(x??'').replace(/[&<>"']/g,'');const st=Object.assign({title:'مرحباً بك في نظام حجوزاتي المطوّر',sub:'لخدمة الشاليهات والاستراحات',copy:'جميع الحقوق محفوظة © 2026',ver:'v1.0',renew:'لتجديد الاشتراك أو الاستفسار تواصل معنا',phone:''},S||{});
  $('lgT').textContent=st.title;$('lgS').textContent=st.sub;$('lgC').textContent=st.copy;$('lgV').textContent='الإصدار '+st.ver;
  const ph=String(st.phone||'').replace(/\D/g,'');
  $('lgR').innerHTML=esc(st.renew)+(ph?`<br><a href="https://wa.me/${ph.replace(/^0/,'966')}" target="_blank" style="color:#10ac84;font-weight:700"><i class="fa-brands fa-whatsapp"></i> واتساب</a> | <a href="tel:${ph}" dir="ltr" style="color:#2e86de;font-weight:700">${esc(st.phone)}</a>`:'');
-})();
+}
+fillLogin(SA.settings);db.ref('system/settings').once('value').then(x=>{if(x.val())fillLogin(x.val())}).catch(()=>{});
 function normPhone(p){let d=String(p||'').replace(/\D/g,'');if(d.startsWith('00'))d=d.slice(2);if(d.startsWith('966'))return d;if(d.startsWith('0'))d=d.slice(1);return d?'966'+d:''}
 function localPhone(p){const d=String(p||'').replace(/\D/g,'');return d.startsWith('966')?'0'+d.slice(3):d}
-$('rPl').innerHTML=(SA.plans||[]).map(p=>`<option value="${p.id}">${String(p.name).replace(/[<>&"]/g,'')} - ${p.price} ر.س/شهر</option>`).join('')||'<option value="0">سيُحدد لاحقاً</option>';
+function fillPlans(L){$('rPl').innerHTML=(L||[]).map(p=>`<option value="${p.id}">${String(p.name).replace(/[<>&"]/g,'')} - ${p.price} ر.س/شهر</option>`).join('')||'<option value="0">سيُحدد لاحقاً</option>'}
+fillPlans(SA.plans);db.ref('plans').once('value').then(x=>{const o=x.val();if(o)fillPlans(Object.entries(o).map(([id,p])=>({id,name:p.name,price:p.price})))}).catch(()=>{});
 function showReg(on){$('loginBox').style.display=on?'none':'block';$('regBox').style.display=on===1?'block':'none';$('regDone').style.display=on===2?'block':'none';$('te').textContent=''}
-function regSubmit(){
+async function regSubmit(){
  const v=id=>$(id).value.trim(),e=$('re'),bad=m=>{e.textContent=m};
- const f={name:v('rN'),type:$('rT').value,owner:v('rO'),ph:v('rP').replace(/\D/g,'').replace(/^0/,''),email:v('rE'),username:v('rU'),password:$('rW').value,plan:+$('rPl').value||0};
+ const f={name:v('rN'),type:$('rT').value,owner:v('rO'),ph:v('rP').replace(/\D/g,'').replace(/^0/,''),email:v('rE').toLowerCase(),password:$('rW').value,plan:+$('rPl').value||0};
  if(!f.name||!f.owner)return bad('أدخل اسم المنشأة واسمك');
  if(f.ph.length!==9||f.ph[0]!=='5')return bad('رقم الجوال: 9 أرقام يبدأ بـ 5');
- if(f.email&&!/^\S+@\S+\.\S+$/.test(f.email))return bad('البريد الإلكتروني غير صحيح');
- if(f.username.length<3||/\s/.test(f.username))return bad('اسم المستخدم 3 أحرف على الأقل بدون مسافات');
- if(f.password.length<4)return bad('كلمة المرور 4 أحرف على الأقل');
- const lc=f.username.toLowerCase();
- if((SA.users||[]).some(u=>u.username.toLowerCase()===lc)||(SA.signups||[]).some(g=>g.status==='pending'&&g.username.toLowerCase()===lc))return bad('اسم المستخدم مستخدم، اختر غيره');
- const FF=JSON.parse(localStorage.getItem('sa_data')||'null');if(!FF)return bad('النظام غير مهيأ بعد، تواصل مع الإدارة');
- FF.signups=FF.signups||[];
- FF.signups.unshift({id:Date.now(),name:f.name,type:f.type,owner:f.owner,phone:'966'+f.ph,email:f.email,username:f.username,password:f.password,plan:f.plan,date:today(),status:'pending'});
- localStorage.setItem('sa_data',JSON.stringify(FF));e.textContent='';showReg(2)}
+ if(!/^\S+@\S+\.\S+$/.test(f.email))return bad('أدخل بريداً إلكترونياً صحيحاً (للدخول واستعادة كلمة المرور)');
+ if(f.password.length<6)return bad('كلمة المرور 6 أحرف على الأقل');
+ bad('جارٍ الإرسال...');window._signing=true;let cr=null;
+ try{
+  cr=await auth.createUserWithEmailAndPassword(f.email,f.password);
+  await db.ref('signups/'+cr.user.uid).set({name:f.name,type:f.type,owner:f.owner,phone:'966'+f.ph,email:f.email,plan:f.plan,date:today(),status:'pending',uid:cr.user.uid});
+  await auth.signOut();e.textContent='';showReg(2)
+ }catch(err){if(cr&&cr.user){try{await cr.user.delete()}catch(x){}}bad(fbErr(err))}
+ finally{window._signing=false}}
 function togPw(){const i=$('tp'),h=i.type==='password';i.type=h?'text':'password';$('eye').innerHTML=`<i class="fa-solid fa-eye${h?'-slash':''}"></i>`}
 const K=n=>TID==='1'&&localStorage.getItem(n)&&localStorage.getItem(n+'_t1')===null?n:n+'_t'+TID;
 function tLogin(){
- const F=JSON.parse(localStorage.getItem('sa_data')||'{}'),un=$('tu').value.trim(),pw=$('tp').value,E=m=>{$('te').style.color='#c62828';$('te').textContent=m};
- const u=(F.users||[]).find(x=>x.username===un&&x.password===pw&&x.on);
- if(!u){const r=(F.signups||[]).find(x=>x.username===un&&x.password===pw);
-  if(r&&r.status==='pending'){E('طلبك قيد المراجعة، سنتواصل معك عند التفعيل');return}
-  if(r&&r.status==='rejected'){E('لم يتم قبول الطلب، تواصل مع الإدارة');return}
-  E('بيانات الدخول غير صحيحة');return}
- const t=(F.tenants||[]).find(x=>x.id==u.tenant);
- if(!t||!t.on){E('حساب المنشأة موقوف، تواصل مع الإدارة');return}
- if(t.end<today()){E('انتهى اشتراك المنشأة، تواصل معنا للتجديد');return}
- sessionStorage.setItem('tid',String(t.id));sessionStorage.setItem('uid',String(u.id));
- if($('tr').checked)localStorage.setItem('cruise_remember',JSON.stringify({uid:u.id}));else localStorage.removeItem('cruise_remember');location.reload()}
+ const em=$('tu').value.trim(),pw=$('tp').value,E=m=>{$('te').style.color='#c62828';$('te').textContent=m};
+ if(!em||!pw){E('أدخل البريد وكلمة المرور');return}
+ $('te').textContent='';
+ auth.setPersistence($('tr').checked?firebase.auth.Auth.Persistence.LOCAL:firebase.auth.Auth.Persistence.SESSION).then(()=>auth.signInWithEmailAndPassword(em,pw)).catch(x=>E(fbErr(x)))}
+function forgot(){const em=$('tu').value.trim()||prompt('أدخل بريدك الإلكتروني:');if(!em)return;auth.sendPasswordResetEmail(em).then(()=>alert('تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك')).catch(x=>alert(fbErr(x)))}
+async function buildCache(u){
+ const g=async p=>(await db.ref(p).once('value')).val();
+ const bad=async(m,out=true)=>{if(out)await auth.signOut();$('te').style.color='#c62828';$('te').textContent=m};
+ $('te').style.color='#718093';$('te').textContent='جارٍ التحقق...';
+ const [prof,sup]=await Promise.all([g('users/'+u.uid),g('superAdmins/'+u.uid)]);
+ const prev=sup===true&&!!qT;let tid,me;
+ if(prof){if(prof.active===false)return bad('حسابك موقوف، تواصل مع الإدارة');tid=String(prof.tenantId);me={id:u.uid,name:prof.name,username:u.email,email:u.email,tenant:tid,role:prof.role,on:true}}
+ else if(prev){tid=qT;me={id:u.uid,name:'المعاينة',username:u.email,email:u.email,tenant:tid,role:'owner',on:true}}
+ else if(sup===true)return bad('أنت مسجل كسوبر أدمن، افتح التطبيق من لوحة الأدمن (زر دخول)',false);
+ else{const sg=await g('signups/'+u.uid);return bad(sg?(sg.status==='rejected'?'لم يتم قبول طلبك، تواصل مع الإدارة':'طلبك قيد المراجعة، سنتواصل معك عند التفعيل'):'هذا الحساب غير مسجل في أي منشأة')}
+ const t=await g('tenants/'+tid);if(!t)return bad('المنشأة غير موجودة');
+ if(!prev){if(t.active!==true)return bad('حساب المنشأة موقوف، تواصل مع الإدارة');if((t.endTs||0)<Date.now())return bad('انتهى اشتراك المنشأة، تواصل معنا للتجديد')}
+ const [pl,st]=await Promise.all([g('plans'),g('system/settings')]);
+ localStorage.setItem('sa_cache',JSON.stringify({tenants:[{id:tid,code:t.code,name:t.name,type:t.type,owner:t.owner,phone:t.phone,address:t.address||'',plan:t.planId,end:t.end,on:t.active===true,addons:Object.keys(t.addons||{}),gift:!!t.gift}],users:[me],plans:Object.entries(pl||{}).map(([id,p])=>({id,name:p.name,price:p.price,units:p.units,users:p.users,f:p.features||{}})),settings:st||{},tickets:SA.tickets||[]}));
+ sessionStorage.setItem('tid',tid);sessionStorage.setItem('uid',u.uid);if(prev)sessionStorage.setItem('sa','1');
+ location.reload()}
+auth.onAuthStateChanged(async u=>{
+ if(window._signing)return;
+ if(!u){if(TEN){localStorage.removeItem('sa_cache');sessionStorage.removeItem('tid');sessionStorage.removeItem('uid');sessionStorage.removeItem('sa');location.reload()}return}
+ if(TEN&&sessionStorage.getItem('uid')===u.uid&&(!qT||qT===TID))return;
+ try{await buildCache(u)}catch(x){$('te').style.color='#c62828';$('te').textContent=fbErr(x)}});
 function saveFac(){
  if(!ME||ME.role!=='owner'){alert('تعديل بيانات المنشأة لصاحب المنشأة فقط');return}
  const n=$('aName').value.trim();if(!n){alert('اسم المنشأة مطلوب');return}
- TEN.name=n;TEN.phone=normPhone($('aPhone').value);TEN.address=$('aAddr').value.trim();persistSA();alert('تم حفظ بيانات المنشأة');location.reload()}
-function saveMe(){
- if(!ME)return;
- const un=$('uUser').value.trim(),nm=$('uName').value.trim(),np=$('uNew').value;
- if(!un||!nm){alert('الاسم واسم المستخدم مطلوبان');return}
- if(SA.users.some(u=>u.id!==ME.id&&u.username===un)){alert('اسم المستخدم مستخدم من حساب آخر، اختر اسماً غيره');return}
- if(!sessionStorage.getItem('sa')&&$('uOld').value!==ME.password){alert('كلمة المرور الحالية غير صحيحة');return}
- if(np&&np.length<4){alert('كلمة المرور الجديدة قصيرة (4 أحرف على الأقل)');return}
- ME.name=nm;ME.username=un;if(np)ME.password=np;persistSA();alert('تم تحديث بيانات الدخول، وهي نفس حسابك بدون إنشاء حساب جديد');location.reload()}
-function tLogout(){localStorage.removeItem('cruise_remember');sessionStorage.removeItem('tid');sessionStorage.removeItem('uid');location.reload()}
+ const d={name:n,phone:normPhone($('aPhone').value),address:$('aAddr').value.trim()};
+ db.ref('tenants/'+TID).update(d).then(()=>{Object.assign(TEN,d);persistSA();alert('تم حفظ بيانات المنشأة');location.reload()}).catch(x=>alert(fbErr(x)))}
+async function saveMe(){
+ const nm=$('uName').value.trim(),np=$('uNew').value,old=$('uOld').value;
+ if(!nm){alert('الاسم مطلوب');return}
+ try{
+  const u=auth.currentUser;
+  if(np){if(np.length<6){alert('كلمة المرور الجديدة 6 أحرف على الأقل');return}
+   await u.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(u.email,old));await u.updatePassword(np)}
+  if(!sessionStorage.getItem('sa'))await db.ref('users/'+u.uid+'/name').set(nm);
+  if(ME){ME.name=nm;persistSA()}
+  alert('تم تحديث بياناتك');location.reload()
+ }catch(x){alert(fbErr(x))}}
+function tLogout(){localStorage.removeItem('sa_cache');sessionStorage.clear();auth.signOut().finally(()=>location.reload())}
 $('tp').onkeydown=e=>{if(e.key==='Enter')tLogin()};
 let bookings=load(K('cruise_bookings'),[]),expenses=load(K('cruise_expenses'),[]);
 let prices=load(K('chalet_prices'),{r:{'نساء':600,'رجال':500,'قسمين':1000},w:{'نساء':800,'رجال':700,'قسمين':1300}});
@@ -572,7 +598,7 @@ function cusBlack(p){const mt=ld('cruise_customers',{}),o=mt[p]||{};o.black=!o.b
 function renderStaff(){
  const us=SA.users.filter(u=>u.tenant==TID);$('stLim').textContent=`(${us.length} من ${PL?PL.users:'∞'})`;
  $('stBody').innerHTML=us.map(u=>`<tr><td>${esc(u.name)}</td><td dir="ltr">${esc(u.username)}</td><td><span class="bd ${u.role==='owner'?'ok':'rijal'}">${u.role==='owner'?'مالك':'موظف'}</span></td><td><span class="bd ${u.on?'ok':'no'}">${u.on?'نشط':'موقوف'}</span></td><td>${u.role==='owner'?'':`<button class="btn b2" style="width:auto;padding:4px 8px" onclick="togStaff(${u.id})">${u.on?'إيقاف':'تفعيل'}</button> <button class="btn b4" style="width:auto;padding:4px 8px" onclick="delStaff(${u.id})">حذف</button>`}</td></tr>`).join('')}
-function addStaff(){
+function addStaff(){alert('إضافة الموظفين بحسابات حقيقية تُفعّل في المرحلة القادمة');return;
  const n=$('sN').value.trim(),u=$('sU').value.trim(),p=$('sP').value;
  if(!n||!u||p.length<4){alert('أكمل البيانات (كلمة المرور 4 أحرف على الأقل)');return}
  if(SA.users.some(x=>x.username===u)){alert('اسم المستخدم مستخدم من حساب آخر');return}

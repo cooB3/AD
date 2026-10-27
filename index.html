@@ -404,7 +404,7 @@ function dual(d){if(!d)return'';try{return d+' ('+new Date(d).toLocaleDateString
 const phoneFmt=p=>'+966'+String(p).replace(/\D/g,'').replace(/^966/,'').replace(/^0/,'');
 const stCls=s=>s==='مؤكد'?'ok':'no';
 const secCls=s=>s==='نساء'?'nisah':s==='رجال'?'rijal':'qismain';
-function save(){localStorage.setItem(K('cruise_bookings'),JSON.stringify(bookings));localStorage.setItem(K('cruise_expenses'),JSON.stringify(expenses));renderRec();renderExp();dash()}
+function save(){localStorage.setItem(K('cruise_bookings'),JSON.stringify(bookings));localStorage.setItem(K('cruise_expenses'),JSON.stringify(expenses));renderRec();renderExp();dash();fbSyncAll()}
 function tg(id){const e=$(id);e.style.display=e.style.display==='block'?'none':'block'}
 
 /* navigation */
@@ -419,7 +419,7 @@ function isWk(d){if(!d)return false;const x=new Date(d+'T00:00:00').getDay();ret
 function autoPrice(){const l=isWk($('bDate').value)?prices.w:prices.r;if(l[$('bSec').value]!==undefined&&!$('bId').value)$('bPrice').value=l[$('bSec').value];calc()}
 function calc(){$('bRem').value=Math.max(0,num($('bPrice').value)-num($('bPaid').value))+' ر.س'}
 function fillCfg(){['نساء','رجال','قسمين'].forEach(s=>{$('r-'+s).value=prices.r[s];$('w-'+s).value=prices.w[s]})}
-function saveCfg(){['نساء','رجال','قسمين'].forEach(s=>{prices.r[s]=num($('r-'+s).value);prices.w[s]=num($('w-'+s).value)});localStorage.setItem(K('chalet_prices'),JSON.stringify(prices));autoPrice();tg('cfg');alert('تم حفظ إعدادات الأسعار بنجاح!')}
+function saveCfg(){['نساء','رجال','قسمين'].forEach(s=>{prices.r[s]=num($('r-'+s).value);prices.w[s]=num($('w-'+s).value)});localStorage.setItem(K('chalet_prices'),JSON.stringify(prices));fbSet('tenants/'+TID+'/prices',prices);autoPrice();tg('cfg');alert('تم حفظ إعدادات الأسعار بنجاح!')}
 $('bDate').onchange=autoPrice;$('bSec').onchange=autoPrice;$('bPrice').oninput=calc;$('bPaid').oninput=calc;
 $('bPhone').oninput=function(){let v=this.value.replace(/\D/g,'').replace(/^0/,'');this.value=v.slice(0,9)};
 
@@ -505,7 +505,7 @@ function applyRc(){
  $('rBank').textContent=rc.bank;$('rBen').textContent=rc.ben;$('rAcc').textContent=rc.acc;$('rIban').textContent=rc.iban;
  [['iLogo','logo'],['rQr','qr']].forEach(([id,k])=>{const im=$(id);if(rc[k]){im.src=rc[k];im.style.display='block'}else{im.removeAttribute('src');im.style.display='none'}})
  $('cPol').value=rc.pol;$('cIns').value=rc.ins;$('cBank').value=rc.bank;$('cBen').value=rc.ben;$('cAcc').value=rc.acc;$('cIban').value=rc.iban}
-function persistRc(){localStorage.setItem(K('cruise_receipt_settings'),JSON.stringify(rc))}
+function persistRc(){persistRcAll()}
 function pickImg(inp,kind){
  const f=inp.files[0];if(!f)return;const r=new FileReader();
  r.onload=e=>{const im=new Image();im.onload=()=>{
@@ -514,7 +514,7 @@ function pickImg(inp,kind){
   im.onerror=()=>alert('تعذر قراءة الصورة');im.src=e.target.result};
  r.readAsDataURL(f);inp.value=''}
 function clrImg(kind){rc[kind]='';persistRc();applyRc()}
-function saveRc(){rc={logo:rc.logo,qr:rc.qr,pol:$('cPol').value,ins:$('cIns').value,bank:$('cBank').value,ben:$('cBen').value,acc:$('cAcc').value,iban:$('cIban').value};localStorage.setItem(K('cruise_receipt_settings'),JSON.stringify(rc));applyRc();alert('تم حفظ إعدادات السند بنجاح!')}
+function saveRc(){rc={logo:rc.logo,qr:rc.qr,pol:$('cPol').value,ins:$('cIns').value,bank:$('cBank').value,ben:$('cBen').value,acc:$('cAcc').value,iban:$('cIban').value};persistRcAll();applyRc();alert('تم حفظ إعدادات السند بنجاح!')}
 function openRc(id){
  const b=bookings.find(x=>String(x.id)===String(id));if(!b)return;active=b;
  $('iId').textContent='#'+b.id;$('iDt').textContent=new Date().toLocaleString('ar-SA',{timeZone:'Asia/Riyadh'});
@@ -573,7 +573,7 @@ function impJson(ev){
 
 /* premium features */
 let CU='';
-const ld=(n,d)=>load(K(n),d),sv=(n,v)=>localStorage.setItem(K(n),JSON.stringify(v));
+const ld=(n,d)=>load(K(n),d),sv=(n,v)=>{localStorage.setItem(K(n),JSON.stringify(v));fbSv(n,v)};
 const ENM={'سند تأكيد حجز':'Booking Confirmation','رقم السند:':'Receipt No:','تاريخ الإصدار:':'Issued:','المستأجر:':'Tenant:','الجوال:':'Phone:','التاريخ:':'Date:','الفترة:':'Period:','القسم':'Section','المبلغ':'Total','الواصل':'Paid','المتبقي':'Remaining','الحالة':'Status','سياسة العربون والتأمين والشروط:':'Deposit & Terms:','تنبيهات وشروط عامة:':'General Notes:','تفاصيل الحساب البنكي':'Bank Details','البنك:':'Bank:','المستفيد:':'Beneficiary:','رقم الحساب:':'Account:','توقيع المستأجر':'Tenant Signature','ختم الإدارة':'Stamp','[الختم]':'[Stamp]','نساء':'Women','رجال':'Men','قسمين':'Both sections','مؤكد':'Confirmed','عربون':'Deposit paid','غير مؤكد':'Unconfirmed','صباح':'Morning','مساء':'Evening','يوم كامل':'Full day'};
 function invLang(){
  const en=ld('cruise_lang','ar')==='en'&&HAS('lang'),w=document.createTreeWalker($('inv'),NodeFilter.SHOW_TEXT);let n;
@@ -631,6 +631,50 @@ function postInit(){
  refUnits()}
 function addEyes(){document.querySelectorAll('input[type=password]:not([data-eye])').forEach(i=>{i.dataset.eye=1;const w=document.createElement('div');w.style.cssText='position:relative';i.parentNode.insertBefore(w,i);w.appendChild(i);i.style.paddingLeft='42px';const b=document.createElement('button');b.type='button';b.innerHTML='<i class="fa-solid fa-eye"></i>';b.style.cssText='position:absolute;left:8px;top:'+(i.offsetHeight?(i.offsetHeight/2-11)+'px':'10px')+';background:none;border:0;cursor:pointer;color:#718093;font-size:16px;margin:0;padding:2px';b.onclick=()=>{const h=i.type==='password';i.type=h?'text':'password';b.innerHTML='<i class="fa-solid fa-eye'+(h?'-slash':'')+'"></i>'};w.appendChild(b)})}
 addEyes();
+/* cloud sync */
+let FBRb=false,FBRe=false,LASTB={},LASTE={},_t1=true;
+const sj=x=>JSON.stringify(x,Object.keys(x).sort()),clean=x=>JSON.parse(JSON.stringify(x));
+const lsv2=(n,v)=>localStorage.setItem(K(n),JSON.stringify(v));
+function fbSet(p,v){return db.ref(p).set(v).catch(e=>{if((ME&&ME.role==='owner')||sessionStorage.getItem('sa'))alert(fbErr(e))})}
+function fbSv(n,v){if(!TEN)return;const b='data/'+TID+'/',t='tenants/'+TID+'/';
+ const M={cruise_customers:[b+'customers',v],cruise_units:[b+'units',v],cruise_tpl:[b+'templates',v],cruise_brand:[t+'brandColor',(v&&v.color)||''],cruise_lang:[t+'lang',v]};
+ if(M[n])fbSet(M[n][0],M[n][1])}
+function persistRcAll(){
+ localStorage.setItem(K('cruise_receipt_settings'),JSON.stringify(rc));if(!TEN)return;
+ const t='tenants/'+TID+'/',{logo,qr,...r}=rc;fbSet(t+'receipt',r);fbSet(t+'logo',logo||'');fbSet(t+'qr',qr||'')}
+function fbDiff(path,arr,last){const u={},cur={};arr.forEach(x=>{const k=String(x.id),c=clean(x);cur[k]=sj(c);if(last[k]!==cur[k])u[path+'/'+k]=c});Object.keys(last).forEach(k=>{if(!(k in cur))u[path+'/'+k]=null});return [u,cur]}
+function fbSyncAll(){
+ if(!TEN||!ME)return;const base='data/'+TID+'/',u={};let cb=LASTB,ce=LASTE;
+ if(FBRb){const r=fbDiff(base+'bookings',bookings,LASTB);Object.assign(u,r[0]);cb=r[1]}
+ if(FBRe&&ME.role==='owner'){const r=fbDiff(base+'expenses',expenses,LASTE);Object.assign(u,r[0]);ce=r[1]}
+ if(!Object.keys(u).length)return;
+ db.ref().update(u).then(()=>{LASTB=cb;LASTE=ce}).catch(e=>alert(e.code==='PERMISSION_DENIED'?'تعذر الحفظ: انتهى اشتراك المنشأة أو لا تملك الصلاحية':fbErr(e)))}
+function applyTenant(t){
+ if(!sessionStorage.getItem('sa')&&(t.active!==true||(t.endTs||0)<Date.now())){alert('انتهى اشتراك المنشأة أو أُوقف الحساب');tLogout();return}
+ const f=_t1;_t1=false;
+ if(t.receipt||t.logo||t.qr){rc=Object.assign({},defRc,t.receipt||{},{logo:t.logo||'',qr:t.qr||''});localStorage.setItem(K('cruise_receipt_settings'),JSON.stringify(rc));applyRc()}else if(f&&localStorage.getItem(K('cruise_receipt_settings')))persistRcAll();
+ if(t.prices){prices=t.prices;localStorage.setItem(K('chalet_prices'),JSON.stringify(prices));fillCfg();autoPrice()}else if(f&&localStorage.getItem(K('chalet_prices')))fbSet('tenants/'+TID+'/prices',prices);
+ if(t.brandColor!==undefined){lsv2('cruise_brand',{color:t.brandColor});applyBrand()}else if(f&&localStorage.getItem(K('cruise_brand')))fbSv('cruise_brand',ld('cruise_brand',{}));
+ if(t.lang){lsv2('cruise_lang',t.lang);if($('invLangSel'))$('invLangSel').value=t.lang;invLang()}else if(f&&localStorage.getItem(K('cruise_lang')))fbSv('cruise_lang',ld('cruise_lang','ar'));
+ Object.assign(TEN,{name:t.name,phone:t.phone,address:t.address,end:t.end,on:t.active===true});persistSA()}
+function fbListen(){
+ if(!TEN)return;const b='data/'+TID+'/';
+ db.ref(b+'bookings').on('value',s=>{const o=s.val();
+  if(!FBRb){FBRb=true;if(o===null&&bookings.length){fbSyncAll();return}}
+  bookings=o?Object.values(o).map(clean):[];LASTB={};Object.entries(o||{}).forEach(([k,v])=>LASTB[k]=sj(v));
+  lsv2('cruise_bookings',bookings);renderRec();dash();if($('calendar').classList.contains('active'))drawCal()},()=>{FBRb=false});
+ if((ME&&ME.role==='owner')||sessionStorage.getItem('sa')){
+  db.ref(b+'expenses').on('value',s=>{const o=s.val();
+   if(!FBRe){FBRe=true;if(o===null&&expenses.length){fbSyncAll();return}}
+   expenses=o?Object.values(o).map(clean):[];LASTE={};Object.entries(o||{}).forEach(([k,v])=>LASTE[k]=sj(v));
+   lsv2('cruise_expenses',expenses);renderExp();dash()},()=>{FBRe=true})}else FBRe=true;
+ const W=(path,name,empty,cb)=>{let first=true;db.ref(path).on('value',s=>{const v=s.val();
+  if(first&&v===null&&localStorage.getItem(K(name))&&JSON.stringify(ld(name,empty))!==JSON.stringify(empty)){first=false;fbSv(name,ld(name,empty));return}
+  first=false;lsv2(name,v===null?empty:v);cb()},()=>{})};
+ W(b+'customers','cruise_customers',{},()=>{if($('customers').classList.contains('active'))renderCus()});
+ W(b+'units','cruise_units',[],()=>{refUnits();if($('units').classList.contains('active'))renderUnits()});
+ W(b+'templates','cruise_tpl',{},()=>{});
+ db.ref('tenants/'+TID).on('value',s=>{const t=s.val();if(t)applyTenant(t)})}
 /* init */
 (function(){
  if(!TEN)return;
@@ -642,7 +686,7 @@ addEyes();
  $('calMonth').innerHTML=opts;$('recMonth').innerHTML=opts;$('recMonth').value=calM;
  $('period').innerHTML='<option value="all">جميع الأشهر</option><option value="current">الشهر الحالي</option>'+opts;$('period').value=calM;$('period').onchange=dash;
  $('bDate').value=t;$('eDate').value=t;$('calSearch').value=t;
- fillCfg();applyRc();autoPrice();save();postInit();
+ fillCfg();applyRc();autoPrice();save();postInit();fbListen();
 })();
 </script>
 </body>

@@ -253,7 +253,7 @@ th,td{padding:11px 9px;border-bottom:1px solid #f1f2f6;text-align:right;font-siz
    <p style="font-size:11px;color:#718093;margin-bottom:10px">رقم المنشأة: <b id="aCode"></b> | الباقة والاشتراك يديرهما مزوّد الخدمة.</p>
    <button class="btn b3" onclick="saveFac()">حفظ بيانات المنشأة</button></div>
   <div class="card"><h3>بيانات الدخول الخاصة بي</h3>
-   <div class="grid"><div><label>الاسم</label><input id="uName"></div><div><label>البريد الإلكتروني (للدخول)</label><input id="uUser" dir="ltr" readonly style="background:#f1f2f6"></div>
+   <div class="grid"><div><label>الاسم</label><input id="uName"></div><div><label>البريد الإلكتروني (للدخول)</label><input id="uUser" dir="ltr" readonly style="background:#f1f2f6"></div><div><label>اسم المستخدم للدخول (اختياري)</label><input id="uAlias" dir="ltr" placeholder="مثال: alshalee1"></div>
    <div><label>كلمة المرور الحالية</label><input id="uOld" type="password"></div><div><label>كلمة مرور جديدة (اختياري)</label><input id="uNew" type="password"></div></div>
    <button class="btn b2" onclick="saveMe()">حفظ بيانات الدخول</button></div>
   <div class="card" id="brandCard" style="display:none"><h3>هوية المنشأة</h3><label>اللون الرئيسي</label><input id="brC" type="color" style="height:42px"><button class="btn b3" style="margin-top:8px" onclick="saveBrand()">حفظ الهوية</button></div>
@@ -346,10 +346,11 @@ function regWhats(){const ph=normPhone(SUPPORT_PH);if(!ph||!LASTREG)return;
  window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(m),'_blank')}
 function togPw(){const i=$('tp'),h=i.type==='password';i.type=h?'text':'password';$('eye').innerHTML=`<i class="fa-solid fa-eye${h?'-slash':''}"></i>`}
 const K=n=>TID==='1'&&localStorage.getItem(n)&&localStorage.getItem(n+'_t1')===null?n:n+'_t'+TID;
-function tLogin(){
- const em=$('tu').value.trim(),pw=$('tp').value,E=m=>{$('te').style.color='#c62828';$('te').textContent=m};
+async function tLogin(){
+ let em=$('tu').value.trim();const pw=$('tp').value,E=m=>{$('te').style.color='#c62828';$('te').textContent=m};
  if(!em||!pw){E('أدخل البريد وكلمة المرور');return}
  $('te').textContent='';
+ if(!em.includes('@')){try{const sn=await db.ref('usernames/'+em.toLowerCase()).once('value');if(!sn.val()){E('اسم المستخدم غير موجود');return}em=sn.val()}catch(z){E(fbErr(z));return}}
  auth.setPersistence($('tr').checked?firebase.auth.Auth.Persistence.LOCAL:firebase.auth.Auth.Persistence.SESSION).then(()=>auth.signInWithEmailAndPassword(em,pw)).catch(x=>E(fbErr(x)))}
 function forgot(){const em=$('tu').value.trim()||prompt('أدخل بريدك الإلكتروني:');if(!em)return;auth.sendPasswordResetEmail(em).then(()=>alert('تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك')).catch(x=>alert(fbErr(x)))}
 async function buildCache(u){
@@ -385,7 +386,10 @@ async function saveMe(){
   const u=auth.currentUser;
   if(np){if(np.length<6){alert('كلمة المرور الجديدة 6 أحرف على الأقل');return}
    await u.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(u.email,old));await u.updatePassword(np)}
-  if(!sessionStorage.getItem('sa'))await db.ref('users/'+u.uid+'/name').set(nm);
+  if(!sessionStorage.getItem('sa')){await db.ref('users/'+u.uid+'/name').set(nm);const al=($('uAlias').value||'').trim().toLowerCase(),old=(await db.ref('users/'+u.uid+'/username').once('value')).val()||'',em=(u.email||'').toLowerCase();
+  if(al!==old){if(al&&!/^[a-z0-9_.-]{3,30}$/.test(al)){alert('اسم المستخدم: 3-30 حرفاً إنجليزياً صغيراً أو أرقاماً أو ._-');return}
+   if(al){const ex=(await db.ref('usernames/'+al).once('value')).val();if(ex&&ex!==em){alert('اسم المستخدم محجوز، اختر غيره');return}}
+   const U={};if(old)U['usernames/'+old]=null;if(al)U['usernames/'+al]=em;U['users/'+u.uid+'/username']=al||null;await db.ref().update(U)}};
   if(ME){ME.name=nm;persistSA()}
   alert('تم تحديث بياناتك');location.reload()
  }catch(x){alert(fbErr(x))}}
@@ -629,9 +633,9 @@ function delUnit(i){const us=ld('cruise_units',[]);if(confirm('حذف الوحد
 function renderTk(){
  $('priTag').style.display=HAS('support')?'inline-block':'none';
  db.ref('tickets/'+TID).once('value').then(x=>{const o=x.val()||{};
-  $('tkBody').innerHTML=Object.values(o).sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(t=>`<tr><td>${esc(t.title)}</td><td>${t.date}</td><td><span class="bd ${t.status==='open'?'wn':'ok'}">${t.status==='open'?'قيد المعالجة':'مغلق'}</span></td></tr>`).join('')||'<tr><td colspan="3" style="text-align:center;padding:14px;color:#a4b0be">لا توجد طلبات</td></tr>'}).catch(()=>{})}
+  $('tkBody').innerHTML=Object.values(o).sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(t=>`<tr><td>${esc(t.title)}${(()=>{const r=Object.values(t.replies||{}).sort((a,b)=>b.ts-a.ts)[0];return r?'<br><small style="color:#10ac84">رد الدعم: '+esc(r.text)+'</small>':''})()}</td><td>${t.date}</td><td><span class="bd ${t.status==='open'?'wn':'ok'}">${t.status==='open'?'قيد المعالجة':'مغلق'}</span></td></tr>`).join('')||'<tr><td colspan="3" style="text-align:center;padding:14px;color:#a4b0be">لا توجد طلبات</td></tr>'}).catch(()=>{})}
 function sendTicket(){const t=$('tkT').value.trim(),m=$('tkM').value.trim();if(!t||!m){alert('اكتب العنوان والتفاصيل');return}
- db.ref('tickets/'+TID).push({title:t,message:m,priority:HAS('support'),status:'open',date:today(),by:(ME&&ME.name)||''}).then(()=>{$('tkT').value=$('tkM').value='';renderTk();alert('تم إرسال طلبك')}).catch(e=>alert(fbErr(e)))}
+ db.ref('tickets/'+TID).push({title:t,message:m,priority:HAS('support'),status:'open',date:today(),by:(ME&&ME.name)||'',tname:(TEN&&TEN.name)||''}).then(()=>{$('tkT').value=$('tkM').value='';renderTk();alert('تم إرسال طلبك')}).catch(e=>alert(fbErr(e)))}
 function applyFeatures(){
  document.querySelectorAll('#nav li[data-f]').forEach(li=>li.style.display=HAS(li.dataset.f)?'':'none');
  document.querySelectorAll('[data-ft]').forEach(el=>el.style.display=HAS(el.dataset.ft)?'':'none');
@@ -690,7 +694,7 @@ function fbListen(){
 /* init */
 (function(){
  if(!TEN)return;
- document.title=NAME;$('aName').value=NAME;$('aPhone').value=localPhone(TEN.phone);$('aAddr').value=TEN.address||'';$('aCode').textContent=TEN.code||TEN.id;if(ME){$('uName').value=ME.name;$('uUser').value=ME.username;if(ME.role!=='owner')$('facCard').style.display='none'}$('tName').textContent=NAME;
+ document.title=NAME;$('aName').value=NAME;$('aPhone').value=localPhone(TEN.phone);$('aAddr').value=TEN.address||'';$('aCode').textContent=TEN.code||TEN.id;if(ME){$('uName').value=ME.name;$('uUser').value=ME.username;db.ref('users/'+auth.currentUser.uid+'/username').once('value').then(v=>{$('uAlias').value=v.val()||''}).catch(()=>{});if(ME.role!=='owner')$('facCard').style.display='none'}$('tName').textContent=NAME;
  $('tWelcome').textContent='أهلاً بك يا '+NAME+' في نظام إدارة الحجوزات المطوّر'+(sessionStorage.getItem('sa')?' (وضع المعاينة)':'');
  $('iTn').textContent=NAME;$('iAddr').textContent=[TEN.address,TEN.phone&&('الجوال: '+localPhone(TEN.phone))].filter(Boolean).join(' | ');
  const t=today();calY=+t.slice(0,4);calM=+t.slice(5,7)-1;

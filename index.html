@@ -68,10 +68,38 @@ th,td{padding:11px 9px;border-bottom:1px solid #f1f2f6;text-align:right;font-siz
 </style>
 </head>
 <body>
+<style>
+#splash{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);color:#fff;text-align:center;padding:20px;transition:opacity .7s,visibility .7s;overflow:hidden}
+#splash.out{opacity:0;visibility:hidden}
+#splash:before,#splash:after{content:"";position:absolute;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(84,160,255,.35),transparent 70%);animation:spf 7s ease-in-out infinite}
+#splash:before{top:-90px;right:-90px}#splash:after{bottom:-110px;left:-90px;animation-delay:-3s;background:radial-gradient(circle,rgba(16,172,132,.35),transparent 70%)}
+@keyframes spf{0%,100%{transform:scale(1) translate(0,0)}50%{transform:scale(1.25) translate(20px,15px)}}
+.sp-in{position:relative;z-index:1;max-width:420px;width:100%}
+.sp-logo{font-size:64px;display:inline-block;animation:spb 1.6s ease-in-out infinite;filter:drop-shadow(0 8px 14px rgba(0,0,0,.4))}
+@keyframes spb{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+.sp-in h1{font-size:23px;margin:14px 0 6px;line-height:1.6;animation:spu .9s both}
+.sp-in h1 span{display:block;font-size:30px;background:linear-gradient(90deg,#54a0ff,#10ac84,#feca57,#54a0ff);background-size:250% auto;-webkit-background-clip:text;background-clip:text;color:transparent;animation:sps 3s linear infinite}
+@keyframes sps{to{background-position:250% center}}
+@keyframes spu{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.sp-sub{font-size:13px;opacity:.8;margin-bottom:26px;animation:spu .9s .3s both}
+.sp-bar{height:10px;background:rgba(255,255,255,.15);border-radius:20px;overflow:hidden;animation:spu .9s .5s both}
+.sp-bar i{display:block;height:100%;width:0;border-radius:20px;background:linear-gradient(90deg,#54a0ff,#10ac84);box-shadow:0 0 14px rgba(84,160,255,.8)}
+.sp-pct{font-size:12px;margin-top:8px;opacity:.85;font-variant-numeric:tabular-nums}
+.sp-by{margin-top:30px;font-size:14px;line-height:1.9;animation:spu .9s .8s both}.sp-by b{color:#feca57;font-size:17px}.sp-by span{font-size:12px;opacity:.8;letter-spacing:.5px}
+.sp-rt{margin-top:10px;font-size:11px;opacity:.65;animation:spu .9s 1s both}
+@media(prefers-reduced-motion:reduce){#splash *,#splash:before,#splash:after{animation:none!important}}
+</style>
+<div id="splash"><div class="sp-in"><div class="sp-logo">🏡</div>
+<h1>أهلاً بك في برنامج<span>حجوزاتي المطوّر</span></h1>
+<div class="sp-sub">نظامك الذكي لإدارة حجوزات الشاليهات والاستراحات</div>
+<div class="sp-bar"><i id="spBar"></i></div><div class="sp-pct" id="spPct">0%</div>
+<div class="sp-by">برمجة <b>فهد المخلفي</b><br><span dir="ltr">Programmed by Fahad Almukhlifi</span></div>
+<div class="sp-rt">© جميع الحقوق محفوظة</div></div></div>
+<script>(function(){var t0=Date.now(),D=3200,b=document.getElementById('spBar'),p=document.getElementById('spPct'),s=document.getElementById('splash');function f(){var r=Math.min(1,(Date.now()-t0)/D),e=1-Math.pow(1-r,2);b.style.width=(e*100)+'%';p.textContent=Math.round(e*100)+'%';if(r<1)requestAnimationFrame(f);else{s.classList.add('out');setTimeout(function(){s.remove()},800)}}f()})();</script>
 <div id="tl"><div class="lb">
  <h2 id="lgT"></h2><p id="lgS" style="margin-bottom:16px"></p>
  <div id="loginBox">
-  <input id="tu" type="email" placeholder="البريد الإلكتروني" autocomplete="username" dir="ltr">
+  <input id="tu" type="text" autocapitalize="off" placeholder="البريد الإلكتروني أو اسم المستخدم" autocomplete="username" dir="ltr">
   <div style="position:relative"><input id="tp" data-eye="1" type="password" placeholder="كلمة المرور" autocomplete="current-password" style="padding-left:42px"><button type="button" onclick="togPw()" id="eye" style="position:absolute;left:8px;top:7px;background:none;border:0;cursor:pointer;color:#718093;font-size:16px"><i class="fa-solid fa-eye"></i></button></div>
   <label style="display:flex;align-items:center;gap:6px;font-size:12px;margin:2px 0 8px;cursor:pointer"><input type="checkbox" id="tr" checked style="width:auto"> تذكرني على هذا الجهاز</label>
   <div class="err" id="te"></div><button class="btn" onclick="tLogin()">دخول</button>
@@ -336,7 +364,8 @@ async function regSubmit(){
  if(f.password.length<6)return bad('كلمة المرور 6 أحرف على الأقل');
  bad('جارٍ الإرسال...');window._signing=true;let cr=null;
  try{
-  cr=await auth.createUserWithEmailAndPassword(f.email,f.password);
+  try{cr=await auth.createUserWithEmailAndPassword(f.email,f.password)}catch(er){if(er.code!=='auth/email-already-in-use')throw er;try{cr=await auth.signInWithEmailAndPassword(f.email,f.password)}catch(e2){cr=null;throw er}
+  const [pf,sg]=await Promise.all([db.ref('users/'+cr.user.uid).once('value'),db.ref('signups/'+cr.user.uid).once('value')]);if(pf.exists()||sg.exists()){await auth.signOut();cr=null;throw er}}
   await db.ref('signups/'+cr.user.uid).set({name:f.name,type:f.type,owner:f.owner,phone:'966'+f.ph,email:f.email,plan:f.plan,date:today(),status:'pending',uid:cr.user.uid});
   await auth.signOut();e.textContent='';LASTREG=f;showReg(2);$('regWa').style.display=normPhone(SUPPORT_PH)?'block':'none'
  }catch(err){if(cr&&cr.user){try{await cr.user.delete()}catch(x){}}bad(fbErr(err))}
@@ -352,7 +381,7 @@ async function tLogin(){
  $('te').textContent='';
  if(!em.includes('@')){try{const sn=await db.ref('usernames/'+em.toLowerCase()).once('value');if(!sn.val()){E('اسم المستخدم غير موجود');return}em=sn.val()}catch(z){E(fbErr(z));return}}
  auth.setPersistence($('tr').checked?firebase.auth.Auth.Persistence.LOCAL:firebase.auth.Auth.Persistence.SESSION).then(()=>auth.signInWithEmailAndPassword(em,pw)).catch(x=>E(fbErr(x)))}
-function forgot(){const em=$('tu').value.trim()||prompt('أدخل بريدك الإلكتروني:');if(!em)return;auth.sendPasswordResetEmail(em).then(()=>alert('تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك')).catch(x=>alert(fbErr(x)))}
+async function forgot(){let em=$('tu').value.trim()||prompt('أدخل بريدك الإلكتروني:');if(!em)return;if(!em.includes('@')){try{em=(await db.ref('usernames/'+em.toLowerCase()).once('value')).val()||em}catch(x){}}auth.sendPasswordResetEmail(em).then(()=>alert('تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك')).catch(x=>alert(fbErr(x)))}
 async function buildCache(u){
  const g=async p=>(await db.ref(p).once('value')).val();
  const bad=async(m,out=true)=>{if(out)await auth.signOut();$('te').style.color='#c62828';$('te').textContent=m};
@@ -463,7 +492,7 @@ function renderExp(){
 /* dashboard */
 function dash(){
  const f=$('period').value,cm=today().slice(0,7),y=today().slice(0,4);
- const m=d=>f==='all'||(f==='current'?d.startsWith(cm):(+d.split('-')[1]-1===+f&&d.startsWith(y)));
+ const m=d=>{d=String(d||'');return f==='all'||((f==='current'||!f)?d.startsWith(cm):(+d.split('-')[1]-1===+f&&d.startsWith(y)))};
  const fb=bookings.filter(b=>m(b.date)),fe=expenses.filter(e=>m(e.date));
  const ex=fb.reduce((s,b)=>s+num(b.price),0),co=fb.reduce((s,b)=>s+num(b.paid),0),te=fe.reduce((s,e)=>s+num(e.amount),0);
  $('sExp').textContent=ex.toLocaleString()+' ر.س';$('sCol').textContent=co.toLocaleString()+' ر.س';$('sRem').textContent=(ex-co).toLocaleString()+' ر.س';$('sExs').textContent=te.toLocaleString()+' ر.س';$('sNet').textContent=(co-te).toLocaleString()+' ر.س';
@@ -474,7 +503,7 @@ function dash(){
 /* records */
 function renderRec(){
  const sm=+$('recMonth').value;
- const list=bookings.filter(b=>b.date&&new Date(b.date).getMonth()===sm).sort((a,b)=>a.date.localeCompare(b.date));
+ const list=bookings.filter(b=>b.date&&+String(b.date).slice(5,7)-1===sm).sort((a,b)=>a.date.localeCompare(b.date));
  $('recBody').innerHTML=list.length?list.map((b,i)=>`<tr><td>${i+1}</td><td><b style="color:#54a0ff;cursor:pointer;text-decoration:underline" onclick="openRc('${b.id}')">${esc(b.name)}</b>${b.unit?` <small>(${esc(b.unit)})</small>`:''}</td><td dir="ltr" style="text-align:right">${phoneFmt(b.phone)}</td><td>${b.date}</td><td>${esc(b.period)}</td><td><span class="bd ${secCls(b.section)}">${b.section}</span></td><td>${b.price} ر.س</td><td style="color:#10ac84;font-weight:700">${b.paid} ر.س</td><td style="color:#c62828;font-weight:700">${rem(b)} ر.س</td><td><span class="bd ${stCls(b.status)}">${esc(b.status)}</span></td></tr>`).join(''):`<tr><td colspan="10" style="text-align:center;color:#a4b0be;padding:20px">لا توجد حجوزات في شهر ${MN[sm]}.</td></tr>`;
  filt()}
 function filt(){const q=$('search').value.toLowerCase();document.querySelectorAll('#recBody tr').forEach(r=>r.style.display=r.innerText.toLowerCase().includes(q)?'':'none')}
@@ -541,7 +570,7 @@ function sendWA(){
 /* report */
 function report(){
  const now=today(),cm=now.slice(0,7),mi=+now.slice(5,7)-1;
- const mb=bookings.filter(b=>b.date.startsWith(cm)),me=expenses.filter(e=>e.date.startsWith(cm));
+ const mb=bookings.filter(b=>String(b.date||'').startsWith(cm)),me=expenses.filter(e=>String(e.date||'').startsWith(cm));
  const inc=mb.reduce((s,b)=>s+num(b.paid),0),ex=me.reduce((s,e)=>s+num(e.amount),0),net=inc-ex;
  const top=(arr)=>{const c={};arr.forEach(k=>c[k]=(c[k]||0)+1);const s=Object.entries(c).sort((a,b)=>b[1]-a[1]);return s.length?`${s[0][0]} (${s[0][1]})`:'لا توجد بيانات'};
  const days=['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
@@ -556,7 +585,7 @@ function repPdf(){$('repPrint').querySelector('h2').textContent=NAME+' - الت�
 function dl(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click()}
 function exportXls(){
  const sm=+$('recMonth').value;
- const rows=bookings.filter(b=>b.date&&new Date(b.date).getMonth()===sm).map((b,i)=>({'م':i+1,'اسم المستأجر':b.name,'رقم الجوال':phoneFmt(b.phone),'تاريخ الحجز':b.date,'الفترة':b.period,'القسم':b.section,'إجمالي الإيجار':num(b.price),'المبلغ الواصل':num(b.paid),'المتبقي':rem(b),'حالة الحجز':b.status}));
+ const rows=bookings.filter(b=>b.date&&+String(b.date).slice(5,7)-1===sm).map((b,i)=>({'م':i+1,'اسم المستأجر':b.name,'رقم الجوال':phoneFmt(b.phone),'تاريخ الحجز':b.date,'الفترة':b.period,'القسم':b.section,'إجمالي الإيجار':num(b.price),'المبلغ الواصل':num(b.paid),'المتبقي':rem(b),'حالة الحجز':b.status}));
  const ws=XLSX.utils.json_to_sheet(rows),wb=XLSX.utils.book_new();wb.Workbook={Views:[{RTL:true}]};
  XLSX.utils.book_append_sheet(wb,ws,'حجوزات '+MN[sm]);XLSX.writeFile(wb,`سجل_حجوزات_${MN[sm]}_${NAME}.xlsx`)}
 function importXls(ev){
@@ -694,7 +723,7 @@ function fbListen(){
 /* init */
 (function(){
  if(!TEN)return;
- document.title=NAME;$('aName').value=NAME;$('aPhone').value=localPhone(TEN.phone);$('aAddr').value=TEN.address||'';$('aCode').textContent=TEN.code||TEN.id;if(ME){$('uName').value=ME.name;$('uUser').value=ME.username;db.ref('users/'+auth.currentUser.uid+'/username').once('value').then(v=>{$('uAlias').value=v.val()||''}).catch(()=>{});if(ME.role!=='owner')$('facCard').style.display='none'}$('tName').textContent=NAME;
+ document.title=NAME;$('aName').value=NAME;$('aPhone').value=localPhone(TEN.phone);$('aAddr').value=TEN.address||'';$('aCode').textContent=TEN.code||TEN.id;if(ME){$('uName').value=ME.name;$('uUser').value=ME.username;try{db.ref('users/'+ME.id+'/username').once('value').then(v=>{$('uAlias').value=v.val()||''}).catch(()=>{})}catch(z){}if(ME.role!=='owner')$('facCard').style.display='none'}$('tName').textContent=NAME;
  $('tWelcome').textContent='أهلاً بك يا '+NAME+' في نظام إدارة الحجوزات المطوّر'+(sessionStorage.getItem('sa')?' (وضع المعاينة)':'');
  $('iTn').textContent=NAME;$('iAddr').textContent=[TEN.address,TEN.phone&&('الجوال: '+localPhone(TEN.phone))].filter(Boolean).join(' | ');
  const t=today();calY=+t.slice(0,4);calM=+t.slice(5,7)-1;

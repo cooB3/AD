@@ -72,7 +72,7 @@ th,td{padding:11px 9px;border-bottom:1px solid #f1f2f6;text-align:right;font-siz
  <h2 id="lgT"></h2><p id="lgS" style="margin-bottom:16px"></p>
  <div id="loginBox">
   <input id="tu" type="email" placeholder="البريد الإلكتروني" autocomplete="username" dir="ltr">
-  <div style="position:relative"><input id="tp" type="password" placeholder="كلمة المرور" autocomplete="current-password" style="padding-left:42px"><button type="button" onclick="togPw()" id="eye" style="position:absolute;left:8px;top:7px;background:none;border:0;cursor:pointer;color:#718093;font-size:16px"><i class="fa-solid fa-eye"></i></button></div>
+  <div style="position:relative"><input id="tp" data-eye="1" type="password" placeholder="كلمة المرور" autocomplete="current-password" style="padding-left:42px"><button type="button" onclick="togPw()" id="eye" style="position:absolute;left:8px;top:7px;background:none;border:0;cursor:pointer;color:#718093;font-size:16px"><i class="fa-solid fa-eye"></i></button></div>
   <label style="display:flex;align-items:center;gap:6px;font-size:12px;margin:2px 0 8px;cursor:pointer"><input type="checkbox" id="tr" checked style="width:auto"> تذكرني على هذا الجهاز</label>
   <div class="err" id="te"></div><button class="btn" onclick="tLogin()">دخول</button>
   <div style="margin-top:8px"><a href="#" onclick="forgot();return false" style="font-size:12px;color:#2e86de">نسيت كلمة المرور؟</a></div>
@@ -89,7 +89,7 @@ th,td{padding:11px 9px;border-bottom:1px solid #f1f2f6;text-align:right;font-siz
   <div class="err" id="re"></div><button class="btn b3" onclick="regSubmit()">إرسال طلب التسجيل</button>
   <button class="btn b5" style="margin-top:8px" onclick="showReg(0)">لدي حساب</button>
  </div>
- <div id="regDone" style="display:none;padding:12px;background:#e8f5e9;color:#2e7d32;border-radius:8px;font-size:13px;font-weight:700;line-height:1.8">تم استلام طلب التسجيل ✅<br>طلبك قيد المراجعة، وسنتواصل معك بعد التفعيل.<button class="btn b5" style="margin-top:10px" onclick="showReg(0)">رجوع</button></div>
+ <div id="regDone" style="display:none;padding:12px;background:#e8f5e9;color:#2e7d32;border-radius:8px;font-size:13px;font-weight:700;line-height:1.8">تم استلام طلب التسجيل ✅<br>طلبك قيد المراجعة، وسنتواصل معك بعد التفعيل.<button id="regWa" class="btn b3" style="margin-top:10px;display:none" onclick="regWhats()"><i class="fa-brands fa-whatsapp"></i> تنبيه الدعم الفني عبر واتساب</button><button class="btn b5" style="margin-top:10px" onclick="showReg(0)">رجوع</button></div>
  <div id="lgR" style="margin-top:14px;padding:10px;background:#f8f9fa;border-radius:8px;font-size:12px;color:#2f3640"></div>
  <div style="margin-top:12px;font-size:10px;color:#a4b0be"><span id="lgC"></span> | <span id="lgV"></span></div>
 </div></div>
@@ -315,8 +315,9 @@ const PL=(SA.plans||[]).find(p=>TEN&&p.id==TEN.plan);
 const HAS=k=>!!sessionStorage.getItem('sa')||!!(PL&&PL.f&&PL.f[k])||!!(TEN&&(TEN.addons||[]).includes(k));
 const persistSA=()=>localStorage.setItem('sa_cache',JSON.stringify(SA));
 $('tl').style.display=TEN?'none':'flex';
+let SUPPORT_PH='',LASTREG=null;
 function fillLogin(S){const esc=x=>String(x??'').replace(/[&<>"']/g,'');const st=Object.assign({title:'مرحباً بك في نظام حجوزاتي المطوّر',sub:'لخدمة الشاليهات والاستراحات',copy:'جميع الحقوق محفوظة © 2026',ver:'v1.0',renew:'لتجديد الاشتراك أو الاستفسار تواصل معنا',phone:''},S||{});
- $('lgT').textContent=st.title;$('lgS').textContent=st.sub;$('lgC').textContent=st.copy;$('lgV').textContent='الإصدار '+st.ver;
+ SUPPORT_PH=st.phone||'';$('lgT').textContent=st.title;$('lgS').textContent=st.sub;$('lgC').textContent=st.copy;$('lgV').textContent='الإصدار '+st.ver;
  const ph=String(st.phone||'').replace(/\D/g,'');
  $('lgR').innerHTML=esc(st.renew)+(ph?`<br><a href="https://wa.me/${ph.replace(/^0/,'966')}" target="_blank" style="color:#10ac84;font-weight:700"><i class="fa-brands fa-whatsapp"></i> واتساب</a> | <a href="tel:${ph}" dir="ltr" style="color:#2e86de;font-weight:700">${esc(st.phone)}</a>`:'');
 }
@@ -337,9 +338,12 @@ async function regSubmit(){
  try{
   cr=await auth.createUserWithEmailAndPassword(f.email,f.password);
   await db.ref('signups/'+cr.user.uid).set({name:f.name,type:f.type,owner:f.owner,phone:'966'+f.ph,email:f.email,plan:f.plan,date:today(),status:'pending',uid:cr.user.uid});
-  await auth.signOut();e.textContent='';showReg(2)
+  await auth.signOut();e.textContent='';LASTREG=f;showReg(2);$('regWa').style.display=normPhone(SUPPORT_PH)?'block':'none'
  }catch(err){if(cr&&cr.user){try{await cr.user.delete()}catch(x){}}bad(fbErr(err))}
  finally{window._signing=false}}
+function regWhats(){const ph=normPhone(SUPPORT_PH);if(!ph||!LASTREG)return;
+ const m=`السلام عليكم، قدّمت طلب تسجيل منشأة جديدة في النظام.\nاسم المنشأة: ${LASTREG.name}\nالاسم: ${LASTREG.owner}\nالبريد: ${LASTREG.email}\nأرجو مراجعة الطلب وتفعيله.`;
+ window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(m),'_blank')}
 function togPw(){const i=$('tp'),h=i.type==='password';i.type=h?'text':'password';$('eye').innerHTML=`<i class="fa-solid fa-eye${h?'-slash':''}"></i>`}
 const K=n=>TID==='1'&&localStorage.getItem(n)&&localStorage.getItem(n+'_t1')===null?n:n+'_t'+TID;
 function tLogin(){
@@ -625,6 +629,8 @@ function postInit(){
  if(HAS('branding')){$('brandCard').style.display='block';$('brC').value=ld('cruise_brand',{}).color||'#ff9f43';applyBrand()}
  if(HAS('lang')){$('invLangSel').style.display='inline-block';$('invLangSel').value=ld('cruise_lang','ar')}
  refUnits()}
+function addEyes(){document.querySelectorAll('input[type=password]:not([data-eye])').forEach(i=>{i.dataset.eye=1;const w=document.createElement('div');w.style.cssText='position:relative';i.parentNode.insertBefore(w,i);w.appendChild(i);i.style.paddingLeft='42px';const b=document.createElement('button');b.type='button';b.innerHTML='<i class="fa-solid fa-eye"></i>';b.style.cssText='position:absolute;left:8px;top:'+(i.offsetHeight?(i.offsetHeight/2-11)+'px':'10px')+';background:none;border:0;cursor:pointer;color:#718093;font-size:16px;margin:0;padding:2px';b.onclick=()=>{const h=i.type==='password';i.type=h?'text':'password';b.innerHTML='<i class="fa-solid fa-eye'+(h?'-slash':'')+'"></i>'};w.appendChild(b)})}
+addEyes();
 /* init */
 (function(){
  if(!TEN)return;

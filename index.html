@@ -66,6 +66,8 @@ th,td{padding:11px 9px;border-bottom:1px solid #f1f2f6;text-align:right;font-siz
 .lb{background:#fff;border-radius:16px;padding:26px;width:100%;max-width:340px;text-align:center;margin:auto}.lb h2{color:var(--or);margin-bottom:4px}.lb p{font-size:12px;color:#718093;margin-bottom:16px}.lb input{margin-bottom:10px}.err{color:#c62828;font-size:12px;min-height:18px}
 #tl{align-items:flex-start!important}.lb{margin:auto}
 </style>
+<link rel="icon" type="image/svg+xml" href="brand/favicon.svg"><link rel="icon" type="image/png" sizes="32x32" href="brand/favicon-32.png"><link rel="apple-touch-icon" href="brand/apple-touch-icon.png">
+<meta name="theme-color" content="#E76F51"><meta property="og:type" content="website"><meta property="og:title" content="حجوزات - نظام إدارة الحجوزات"><meta property="og:description" content="أدِر حجوزات منشأتك وعملاءك ومصاريفك من مكان واحد"><meta property="og:image" content="https://YOUR-DOMAIN/brand/og-image.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://YOUR-DOMAIN/brand/og-image.png">
 </head>
 <body>
 <style>#ntf{position:fixed;top:0;left:0;right:0;z-index:9500}.nt{display:flex;align-items:center;gap:8px;padding:9px 14px;color:#fff;font-size:13px;line-height:1.6;animation:ntd .5s}.nt b{flex:1}.nt a,.nt button{background:rgba(255,255,255,.22);border:0;color:#fff;border-radius:6px;padding:3px 9px;cursor:pointer;font-size:12px;text-decoration:none}@keyframes ntd{from{transform:translateY(-100%)}to{transform:none}}</style><div id="ntf"></div>
@@ -91,7 +93,7 @@ th,td{padding:11px 9px;border-bottom:1px solid #f1f2f6;text-align:right;font-siz
 @media(prefers-reduced-motion:reduce){#splash *,#splash:before,#splash:after{animation:none!important}}
 </style>
 <div id="splash"><div class="sp-in"><div class="sp-logo">🏡</div>
-<h1>أهلاً بك في برنامج<span>حجوزاتي المطوّر</span></h1>
+<h1>أهلاً بك في برنامج<span>حجوزات المطوّر</span></h1>
 <div class="sp-sub">نظامك الذكي لإدارة حجوزات الشاليهات والاستراحات</div>
 <div class="sp-bar"><i id="spBar"></i></div><div class="sp-pct" id="spPct">0%</div>
 <div class="sp-by">برمجة <b>فهد المخلفي</b><br><span dir="ltr">Programmed by Fahad Almukhlifi</span></div>
@@ -346,7 +348,7 @@ const HAS=k=>!!sessionStorage.getItem('sa')||!!(PL&&PL.f&&PL.f[k])||!!(TEN&&(TEN
 const persistSA=()=>localStorage.setItem('sa_cache',JSON.stringify(SA));
 $('tl').style.display=TEN?'none':'flex';
 let SUPPORT_PH='',LASTREG=null;
-function fillLogin(S){const esc=x=>String(x??'').replace(/[&<>"']/g,'');const st=Object.assign({title:'مرحباً بك في نظام حجوزاتي المطوّر',sub:'لخدمة الشاليهات والاستراحات',copy:'جميع الحقوق محفوظة © 2026',ver:'v1.0',renew:'لتجديد الاشتراك أو الاستفسار تواصل معنا',phone:''},S||{});
+function fillLogin(S){const esc=x=>String(x??'').replace(/[&<>"']/g,'');const st=Object.assign({title:'مرحباً بك في نظام حجوزات المطوّر',sub:'لخدمة الشاليهات والاستراحات',copy:'جميع الحقوق محفوظة © 2026',ver:'v1.0',renew:'لتجديد الاشتراك أو الاستفسار تواصل معنا',phone:''},S||{});
  SUPPORT_PH=st.phone||'';$('lgT').textContent=st.title;$('lgS').textContent=st.sub;$('lgC').textContent=st.copy;$('lgV').textContent='الإصدار '+st.ver;
  const ph=String(st.phone||'').replace(/\D/g,'');
  $('lgR').innerHTML=esc(st.renew)+(ph?`<br><a href="https://wa.me/${ph.replace(/^0/,'966')}" target="_blank" style="color:#10ac84;font-weight:700"><i class="fa-brands fa-whatsapp"></i> واتساب</a> | <a href="tel:${ph}" dir="ltr" style="color:#2e86de;font-weight:700">${esc(st.phone)}</a>`:'');
@@ -383,7 +385,7 @@ async function tLogin(){
  $('te').textContent='';
  if(!em.includes('@')){try{const sn=await db.ref('usernames/'+em.toLowerCase()).once('value');if(!sn.val()){E('اسم المستخدم غير موجود');return}em=sn.val()}catch(z){E(fbErr(z));return}}
  auth.setPersistence($('tr').checked?firebase.auth.Auth.Persistence.LOCAL:firebase.auth.Auth.Persistence.SESSION).then(()=>auth.signInWithEmailAndPassword(em,pw)).catch(x=>E(fbErr(x)))}
-async function forgot(){const em=$('tu').value.trim(),ph=normPhone(SUPPORT_PH);if(!ph){alert('تواصل مع الدعم الفني لإعادة تعيين كلمة المرور');return}window.open('https://wa.me/'+ph+'?text='+encodeURIComponent('السلام عليكم، نسيت كلمة المرور لحسابي'+(em?' ('+em+')':'')+' في نظام حجوزاتي. أرجو إعادة تعيينها.'),'_blank')}
+async function forgot(){const em=$('tu').value.trim(),ph=normPhone(SUPPORT_PH);if(!ph){alert('تواصل مع الدعم الفني لإعادة تعيين كلمة المرور');return}window.open('https://wa.me/'+ph+'?text='+encodeURIComponent('السلام عليكم، نسيت كلمة المرور لحسابي'+(em?' ('+em+')':'')+' في نظام حجوزات. أرجو إعادة تعيينها.'),'_blank')}
 async function buildCache(u){
  const g=async p=>(await db.ref(p).once('value')).val();
  const bad=async(m,out=true)=>{if(out)await auth.signOut();$('te').style.color='#c62828';$('te').textContent=m};
@@ -402,7 +404,7 @@ async function buildCache(u){
  location.reload()}
 auth.onAuthStateChanged(async u=>{
  if(window._signing)return;
- if(!u){if(TEN){localStorage.removeItem('sa_cache');sessionStorage.removeItem('tid');sessionStorage.removeItem('uid');sessionStorage.removeItem('sa');location.reload()}return}
+ if(!u){if(TEN){Object.keys(localStorage).forEach(k=>{if(k==='sa_cache'||k.indexOf('cruise_')===0)localStorage.removeItem(k)});sessionStorage.removeItem('tid');sessionStorage.removeItem('uid');sessionStorage.removeItem('sa');location.reload()}return}
  if(TEN&&sessionStorage.getItem('uid')===u.uid&&(!qT||qT===TID))return;
  try{await buildCache(u)}catch(x){$('te').style.color='#c62828';$('te').textContent=fbErr(x)}});
 function saveFac(){
@@ -424,7 +426,7 @@ async function saveMe(){
   if(ME){ME.name=nm;persistSA()}
   alert('تم تحديث بياناتك');location.reload()
  }catch(x){alert(fbErr(x))}}
-function tLogout(){localStorage.removeItem('sa_cache');sessionStorage.clear();auth.signOut().finally(()=>location.reload())}
+function tLogout(){Object.keys(localStorage).forEach(k=>{if(k==='sa_cache'||k.indexOf('cruise_')===0)localStorage.removeItem(k)});sessionStorage.clear();auth.signOut().finally(()=>location.reload())}
 $('tp').onkeydown=e=>{if(e.key==='Enter')tLogin()};
 let bookings=load(K('cruise_bookings'),[]),expenses=load(K('cruise_expenses'),[]);
 let prices=load(K('chalet_prices'),{r:{'نساء':600,'رجال':500,'قسمين':1000},w:{'نساء':800,'رجال':700,'قسمين':1300}});

@@ -68,6 +68,7 @@ th,td{padding:11px 9px;border-bottom:1px solid #f1f2f6;text-align:right;font-siz
 </style>
 </head>
 <body>
+<style>#ntf{position:fixed;top:0;left:0;right:0;z-index:9500}.nt{display:flex;align-items:center;gap:8px;padding:9px 14px;color:#fff;font-size:13px;line-height:1.6;animation:ntd .5s}.nt b{flex:1}.nt a,.nt button{background:rgba(255,255,255,.22);border:0;color:#fff;border-radius:6px;padding:3px 9px;cursor:pointer;font-size:12px;text-decoration:none}@keyframes ntd{from{transform:translateY(-100%)}to{transform:none}}</style><div id="ntf"></div>
 <style>
 #splash{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);color:#fff;text-align:center;padding:20px;transition:opacity .7s,visibility .7s;overflow:hidden}
 #splash.out{opacity:0;visibility:hidden}
@@ -266,7 +267,7 @@ th,td{padding:11px 9px;border-bottom:1px solid #f1f2f6;text-align:right;font-siz
    <button class="btn b3" style="margin-top:8px" onclick="saveTpl()">حفظ النصوص</button></div></section>
  <section id="customers" class="tab"><div class="ttl">سجل العملاء</div><div class="card"><div class="tr"><table><thead><tr><th>العميل</th><th>الجوال</th><th>الحجوزات</th><th>المدفوع</th><th>آخر حجز</th><th>ملاحظة</th><th></th></tr></thead><tbody id="cusBody"></tbody></table></div></div></section>
  <section id="staff" class="tab"><div class="ttl">الموظفون <small id="stLim" style="font-size:11px;color:#718093"></small></div>
-  <div class="card"><h3>إضافة موظف (يسجل الحجوزات فقط)</h3><div class="grid"><div><label>الاسم</label><input id="sN"></div><div><label>البريد الإلكتروني</label><input id="sU" type="email" dir="ltr"></div><div><label>كلمة المرور (6 أحرف)</label><input id="sP" type="password"></div></div><button class="btn b3" onclick="addStaff()">إضافة</button></div>
+  <div class="card"><h3>إضافة موظف (يسجل الحجوزات فقط)</h3><div class="grid"><div><label>الاسم</label><input id="sN"></div><div><label>البريد الإلكتروني</label><input id="sU" type="email" dir="ltr"></div><div><label>كلمة المرور (6 أحرف)</label><input id="sP" type="password"></div><div><label>الصلاحية</label><select id="sR"><option value="staff">موظف (يسجل الحجوزات فقط)</option><option value="owner">مدير (نفس صلاحيات المالك)</option></select></div></div><button class="btn b3" onclick="addStaff()">إضافة</button></div>
   <div class="card"><div class="tr"><table><thead><tr><th>الاسم</th><th>المستخدم</th><th>الدور</th><th>الحالة</th><th></th></tr></thead><tbody id="stBody"></tbody></table></div></div></section>
  <section id="units" class="tab"><div class="ttl">الوحدات والفروع <small id="unLim" style="font-size:11px;color:#718093"></small></div>
   <div class="card"><div class="row" style="margin:0"><input id="uN" placeholder="اسم الوحدة أو الفرع، مثل: شاليه 2"><button class="btn b3" style="width:auto" onclick="addUnit()">إضافة</button></div></div>
@@ -289,7 +290,7 @@ th,td{padding:11px 9px;border-bottom:1px solid #f1f2f6;text-align:right;font-siz
 </main>
 
 <div id="rm" class="modal"><div class="mc">
- <div style="text-align:left;margin-bottom:8px"><select id="invLangSel" style="display:none;width:auto;padding:5px" onchange="setLang(this.value)"><option value="ar">السند: عربي</option><option value="en">Receipt: English</option></select> <button class="gear" onclick="tg('cfgrc')"><i class="fa-solid fa-gear"></i></button></div>
+ <div style="text-align:left;margin-bottom:8px"><select id="invLangSel" style="display:none;width:auto;padding:5px" onchange="setLang(this.value)"><option value="ar">السند: عربي</option><option value="en">Receipt: English</option></select></div>
  <div id="cfgrc">
   <label>سياسة العربون والتأمين</label><textarea id="cPol" rows="3"></textarea>
   <label>التعليمات والشروط العامة</label><textarea id="cIns" rows="4"></textarea>
@@ -313,6 +314,7 @@ th,td{padding:11px 9px;border-bottom:1px solid #f1f2f6;text-align:right;font-siz
  <div style="display:flex;flex-direction:column;gap:8px;margin-top:14px">
   <button class="btn b3" onclick="markPaid()">تأكيد الحجز (دفع كامل)</button>
   <button class="btn b2" onclick="editFromModal()">تعديل الحجز</button>
+  <button class="btn" style="background:#576574" onclick="rcCfgToggle()"><i class="fa-solid fa-gear"></i> إعدادات السند (الشعار، البنك، الشروط)</button>
   <button class="btn b4" onclick="invPdf()" data-ft="pdf"><i class="fa-solid fa-file-pdf"></i> تحميل PDF</button>
   <button class="btn b3" onclick="sendWA()" data-ft="whatsapp"><i class="fa-brands fa-whatsapp"></i> إرسال واتساب</button>
   <button class="btn" style="background:#c62828" onclick="delFromModal()"><i class="fa-solid fa-trash"></i> حذف الحجز</button>
@@ -381,13 +383,13 @@ async function tLogin(){
  $('te').textContent='';
  if(!em.includes('@')){try{const sn=await db.ref('usernames/'+em.toLowerCase()).once('value');if(!sn.val()){E('اسم المستخدم غير موجود');return}em=sn.val()}catch(z){E(fbErr(z));return}}
  auth.setPersistence($('tr').checked?firebase.auth.Auth.Persistence.LOCAL:firebase.auth.Auth.Persistence.SESSION).then(()=>auth.signInWithEmailAndPassword(em,pw)).catch(x=>E(fbErr(x)))}
-async function forgot(){let em=$('tu').value.trim()||prompt('أدخل بريدك الإلكتروني:');if(!em)return;if(!em.includes('@')){try{em=(await db.ref('usernames/'+em.toLowerCase()).once('value')).val()||em}catch(x){}}auth.sendPasswordResetEmail(em).then(()=>alert('تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك')).catch(x=>alert(fbErr(x)))}
+async function forgot(){const em=$('tu').value.trim(),ph=normPhone(SUPPORT_PH);if(!ph){alert('تواصل مع الدعم الفني لإعادة تعيين كلمة المرور');return}window.open('https://wa.me/'+ph+'?text='+encodeURIComponent('السلام عليكم، نسيت كلمة المرور لحسابي'+(em?' ('+em+')':'')+' في نظام حجوزاتي. أرجو إعادة تعيينها.'),'_blank')}
 async function buildCache(u){
  const g=async p=>(await db.ref(p).once('value')).val();
  const bad=async(m,out=true)=>{if(out)await auth.signOut();$('te').style.color='#c62828';$('te').textContent=m};
  $('te').style.color='#718093';$('te').textContent='جارٍ التحقق...';
  const [prof,sup]=await Promise.all([g('users/'+u.uid),g('superAdmins/'+u.uid)]);
- const prev=sup===true&&!!qT;let tid,me;
+ const prev=false;let tid,me;
  if(prof){if(prof.active===false)return bad('حسابك موقوف، تواصل مع الإدارة');tid=String(prof.tenantId);me={id:u.uid,name:prof.name,username:u.email,email:u.email,tenant:tid,role:prof.role,on:true}}
  else if(prev){tid=qT;me={id:u.uid,name:'المعاينة',username:u.email,email:u.email,tenant:tid,role:'owner',on:true}}
  else if(sup===true)return bad('أنت مسجل كسوبر أدمن، افتح التطبيق من لوحة الأدمن (زر دخول)',false);
@@ -555,6 +557,7 @@ function openRc(id){
  $('iSec').textContent=b.section;$('iPrice').textContent=b.price+' ر.س';$('iPaid').textContent=b.paid+' ر.س';$('iRem').textContent=rem(b)+' ر.س';
  $('iSt').textContent=b.status;$('iSt').className='bd '+stCls(b.status);
  $('cfgrc').style.display='none';invLang();$('rm').style.display='flex'}
+function rcCfgToggle(){tg('cfgrc');const c=$('cfgrc');if(c.style.display==='block')c.scrollIntoView({behavior:'smooth',block:'start'})}
 function closeRm(){$('rm').style.display='none'}
 $('rm').onclick=e=>{if(e.target===$('rm'))closeRm()};
 function markPaid(){if(!active)return;const b=bookings.find(x=>x.id===active.id);b.paid=b.price;b.status='مؤكد';save();openRc(b.id);alert('تم تأكيد الحجز ودفع كامل المبلغ!')}
@@ -636,21 +639,21 @@ let STF={};
 async function renderStaff(){
  try{STF=(await db.ref('data/'+TID+'/staff').once('value')).val()||{}}catch(e){STF={}}
  $('stLim').textContent=`(${Object.keys(STF).length+1} من ${PL?PL.users:'∞'})`;
- $('stBody').innerHTML=`<tr><td>${esc(ME.name)} (أنت)</td><td dir="ltr">${esc(ME.email||'')}</td><td><span class="bd ok">مالك</span></td><td><span class="bd ok">نشط</span></td><td></td></tr>`+Object.entries(STF).map(([uid,u])=>`<tr><td>${esc(u.name)}</td><td dir="ltr">${esc(u.email)}</td><td><span class="bd rijal">موظف</span></td><td><span class="bd ${u.active?'ok':'no'}">${u.active?'نشط':'موقوف'}</span></td><td><button class="btn b2" style="width:auto;padding:4px 8px" onclick="togStaff('${uid}')">${u.active?'إيقاف':'تفعيل'}</button> <button class="btn b4" style="width:auto;padding:4px 8px" onclick="delStaff('${uid}')">حذف</button></td></tr>`).join('')}
+ $('stBody').innerHTML=`<tr><td>${esc(ME.name)} (أنت)</td><td dir="ltr">${esc(ME.email||'')}</td><td><span class="bd ok">مالك</span></td><td><span class="bd ok">نشط</span></td><td></td></tr>`+Object.entries(STF).map(([uid,u])=>`<tr><td>${esc(u.name)}</td><td dir="ltr">${esc(u.email)}</td><td>${u.role==='owner'?'<span class="bd ok">مدير</span>':'<span class="bd rijal">موظف</span>'}</td><td><span class="bd ${u.active?'ok':'no'}">${u.active?'نشط':'موقوف'}</span></td><td><button class="btn b2" style="width:auto;padding:4px 8px" onclick="togStaff('${uid}')">${u.active?'إيقاف':'تفعيل'}</button> <button class="btn b4" style="width:auto;padding:4px 8px" onclick="delStaff('${uid}')">حذف</button></td></tr>`).join('')}
 async function addStaff(){
- const n=$('sN').value.trim(),em=$('sU').value.trim().toLowerCase(),p=$('sP').value;
+ const n=$('sN').value.trim(),em=$('sU').value.trim().toLowerCase(),p=$('sP').value,rl=$('sR').value==='owner'?'owner':'staff';
  if(!n||!/^\S+@\S+\.\S+$/.test(em)||p.length<6){alert('أدخل الاسم وبريداً صحيحاً وكلمة مرور 6 أحرف على الأقل');return}
  if(PL&&Object.keys(STF).length+1>=PL.users){alert('وصلت الحد الأقصى للمستخدمين في باقتك ('+PL.users+')');return}
  const app=firebase.initializeApp(FBC,'st'+Date.now());let cu=null;
  try{
   cu=(await app.auth().createUserWithEmailAndPassword(em,p)).user;
-  await db.ref('users/'+cu.uid).set({name:n,email:em,tenantId:String(TID),role:'staff',active:true});
-  await db.ref('data/'+TID+'/staff/'+cu.uid).set({name:n,email:em,active:true});
+  await db.ref('users/'+cu.uid).set({name:n,email:em,tenantId:String(TID),role:rl,active:true});
+  await db.ref('data/'+TID+'/staff/'+cu.uid).set({name:n,email:em,role:rl,active:true});
   $('sN').value=$('sU').value=$('sP').value='';await renderStaff();alert('تمت إضافة الموظف، يدخل ببريده وكلمة مروره')
  }catch(e){if(cu){try{await cu.delete()}catch(x){}}alert(fbErr(e))}
  finally{try{await app.auth().signOut()}catch(x){}app.delete()}}
-function togStaff(uid){const v=!(STF[uid]&&STF[uid].active),u={};u['users/'+uid+'/active']=v;u['data/'+TID+'/staff/'+uid+'/active']=v;db.ref().update(u).then(renderStaff).catch(e=>alert(fbErr(e)))}
-function delStaff(uid){if(!confirm('حذف الموظف؟'))return;const u={};u['users/'+uid]=null;u['data/'+TID+'/staff/'+uid]=null;db.ref().update(u).then(renderStaff).catch(e=>alert(fbErr(e)))}
+function togStaff(uid){if((STF[uid]||{}).role==='owner'){alert('إدارة حساب المدير من الدعم الفني فقط');return}const v=!(STF[uid]&&STF[uid].active),u={};u['users/'+uid+'/active']=v;u['data/'+TID+'/staff/'+uid+'/active']=v;db.ref().update(u).then(renderStaff).catch(e=>alert(fbErr(e)))}
+function delStaff(uid){if((STF[uid]||{}).role==='owner'){alert('إدارة حساب المدير من الدعم الفني فقط');return}if(!confirm('حذف الموظف؟'))return;const u={};u['users/'+uid]=null;u['data/'+TID+'/staff/'+uid]=null;db.ref().update(u).then(renderStaff).catch(e=>alert(fbErr(e)))}
 function refUnits(){
  const us=HAS('multi')?ld('cruise_units',[]):[];
  $('unitWrap').style.display=us.length?'block':'none';$('bUnit').innerHTML=us.map(u=>`<option>${esc(u)}</option>`).join('');
@@ -701,8 +704,18 @@ function applyTenant(t){
  if(t.brandColor!==undefined){lsv2('cruise_brand',{color:t.brandColor});applyBrand()}else if(f&&localStorage.getItem(K('cruise_brand')))fbSv('cruise_brand',ld('cruise_brand',{}));
  if(t.lang){lsv2('cruise_lang',t.lang);if($('invLangSel'))$('invLangSel').value=t.lang;invLang()}else if(f&&localStorage.getItem(K('cruise_lang')))fbSv('cruise_lang',ld('cruise_lang','ar'));
  Object.assign(TEN,{name:t.name,phone:t.phone,address:t.address,end:t.end,on:t.active===true,addons:Object.keys(t.addons||{}),plan:t.planId});PL=(SA.plans||[]).find(p=>p.id==TEN.plan)||PL;persistSA();applyFeatures()}
+let NT=[];
+function ntfRender(){const box=$('ntf');if(!box||!TEN)return;let hid=[];try{hid=JSON.parse(localStorage.getItem('ntf_hid')||'[]')}catch(e){}
+ const col={update:'#10ac84',maint:'#ff9f43',outage:'#c62828',info:'#2e86de',sub:'#e67e22'},ic={update:'🔄',maint:'🛠️',outage:'⚠️',info:'📢',sub:'⏳'};
+ const L=NT.filter(n=>n.on!==false).map(n=>({id:n.id,type:col[n.type]?n.type:'info',text:n.text}));
+ const d=TEN.end?Math.ceil((new Date(TEN.end+'T23:59:59')-new Date())/864e5):null;
+ if(d!==null&&d>=0&&d<=15&&!sessionStorage.getItem('sa'))L.unshift({id:'sub'+today(),type:'sub',text:d===0?'ينتهي اشتراككم اليوم ('+TEN.end+')! تواصلوا مع الدعم للتجديد.':'ينتهي اشتراككم بعد '+d+' يوم ('+TEN.end+'). تواصلوا مع الدعم للتجديد.',renew:1});
+ const vis=L.filter(n=>!hid.includes(n.id));const ph=normPhone(SUPPORT_PH);
+ box.innerHTML=vis.map(n=>`<div class="nt" style="background:${col[n.type]}"><span>${ic[n.type]}</span><b>${esc(n.text)}</b>${n.renew&&ph?`<a target="_blank" href="https://wa.me/${ph}?text=${encodeURIComponent('السلام عليكم، أرغب بتجديد اشتراك منشأة ('+(TEN.name||'')+')')}">تجديد</a>`:''}<button onclick="ntfHide('${n.id}')">✕</button></div>`).join('');
+ document.body.style.paddingTop=box.offsetHeight+'px'}
+function ntfHide(id){let h=[];try{h=JSON.parse(localStorage.getItem('ntf_hid')||'[]')}catch(e){}h.push(id);localStorage.setItem('ntf_hid',JSON.stringify(h.slice(-50)));ntfRender()}
 function fbListen(){
- if(!TEN)return;const b='data/'+TID+'/';
+ if(!TEN)return;db.ref('system/notices').on('value',s=>{NT=Object.entries(s.val()||{}).map(([id,n])=>Object.assign({id},n)).sort((a,b)=>(b.ts||0)-(a.ts||0));ntfRender()},()=>{});ntfRender();const b='data/'+TID+'/';
  db.ref(b+'bookings').on('value',s=>{const o=s.val();
   if(!FBRb){FBRb=true;if(o===null&&bookings.length){fbSyncAll();return}}
   bookings=o?Object.values(o).map(clean):[];LASTB={};Object.entries(o||{}).forEach(([k,v])=>LASTB[k]=sj(v));

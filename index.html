@@ -749,5 +749,40 @@ function fbListen(){
  fillCfg();applyRc();autoPrice();save();postInit();fbListen();
 })();
 </script>
+<div id="bot" style="position:fixed;bottom:16px;left:16px;z-index:9998;display:none;font-family:inherit">
+<div id="botP" style="display:none;width:min(340px,calc(100vw - 32px));height:430px;background:#fff;color:#222;border-radius:16px;box-shadow:0 8px 30px #0004;flex-direction:column;overflow:hidden;margin-bottom:10px">
+<div style="background:#E76F51;color:#fff;padding:12px 14px;font-weight:700">💬 مركز المساعدة</div>
+<div style="padding:8px;border-bottom:1px solid #eee"><input id="botI" placeholder="ابحث عن سؤالك..." maxlength="80" oninput="faqGo()" style="width:100%;box-sizing:border-box;padding:9px;border:1px solid #ddd;border-radius:10px;font-size:14px"></div>
+<div id="botM" style="flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:8px;font-size:14px"></div></div>
+<button onclick="botTog()" style="width:56px;height:56px;border-radius:50%;border:0;background:#E76F51;color:#fff;font-size:26px;box-shadow:0 4px 14px #0004">💬</button></div>
+<script>
+/* ===== الأسئلة الشائعة: عدّل هذه القائمة بحرية (q: السؤال، k: كلمات مفتاحية، a: الجواب) ===== */
+const FAQ=[
+{q:'نسيت كلمة المرور',k:'نسيت كلمه المرور باسورد استعادة تغيير رقم سري',a:'من شاشة الدخول اضغط "نسيت كلمة المرور" وسيفتح واتساب مع الدعم الفني لإعادة تعيينها.'},
+{q:'هل أدخل باسم المستخدم بدل البريد؟',k:'اسم المستخدم يوزر دخول تسجيل بريد ايميل',a:'نعم، يمكنك الدخول بالبريد أو باسم المستخدم. ويمكنك تعديل اسم المستخدم من ملفك الشخصي.'},
+{q:'كيف أضع الشعار والبنك والشروط في السند؟',k:'سند شعار لوقو بنك حساب شروط ايصال فاتوره اعدادات',a:'افتح سند أي حجز واضغط زر "⚙ إعدادات السند (الشعار، البنك، الشروط)" في أسفل النافذة.'},
+{q:'كيف أعدّل حجزاً؟',k:'تعديل حجز تغيير تحديث الحجز',a:'افتح سند الحجز واضغط زر "تعديل الحجز".'},
+{q:'كيف أضيف موظفاً أو مديراً؟',k:'موظف مدير اضافه صلاحيات مستخدم فريق عامل',a:'من إدارة الموظفين أضف المستخدم واختر دوره: موظف، أو مدير بنفس صلاحيات المالك. إيقاف أو حذف المدير يتم عن طريق الدعم الفني فقط.'},
+{q:'متى ينتهي اشتراكي؟',k:'اشتراك ينتهي انتهاء تجديد باقتي تاريخ صلاحيه',a:'__SUB__'},
+{q:'ما هي الباقات والأسعار؟',k:'باقات باقه اسعار سعر ترقيه تكلفه ريال اشتراك',a:'الباقات وأسعارها المحدثة يوفرها فريق الدعم. اضغط زر التواصل بالأسفل وسنرسل لك التفاصيل.'},
+{q:'كيف أجدد الاشتراك أو أرقّي الباقة؟',k:'تجديد ترقيه تمديد دفع سداد باقه',a:'يظهر تنبيه قبل انتهاء الاشتراك بـ 15 يوماً، ويمكنك التجديد بالتواصل مع الدعم عبر واتساب.'},
+{q:'أين أرى المصاريف والأرباح؟',k:'مصاريف مصروف ارباح توقعات ايراد حسابات تقرير',a:'سجّل مصاريفك في المصاريف، وستُحسب مع الإيرادات في شاشة التوقعات حسب الشهر.'},
+{q:'لا تظهر الحجوزات أو الشهر',k:'لا تظهر حجوزات فاضي مختفيه الشهر تقويم مشكله',a:'حدّث الصفحة وتأكد من اتصال الإنترنت ومن الشهر المحدد. إن استمرت المشكلة افتح تذكرة دعم.'},
+{q:'كيف أفتح تذكرة دعم؟',k:'تذكره دعم شكوى مشكله بلاغ تواصل فني',a:'من قسم الدعم داخل البرنامج اكتب مشكلتك وسيرد عليك الدعم الفني، أو تواصل عبر واتساب بالزر أدناه.'},
+{q:'هل بياناتي وعملائي محمية؟',k:'امان حمايه خصوصيه بيانات عملاء ارقام هواتف سريه',a:'نعم، كل منشأة معزولة عن غيرها، ولا يستطيع أحد من الإدارة الاطلاع على حجوزاتك أو عملائك أو أرقامهم.'},
+{q:'ما معنى شريط التنبيه أعلى الشاشة؟',k:'تنبيه شريط صيانه تحديث عطل اعلان اشعار',a:'يعرض التحديثات والصيانة وأي أعطال، ويمكنك إخفاؤه بزر الإغلاق.'},
+{q:'أريد تغيير البريد أو بيانات الحساب',k:'تغيير بريد ايميل حساب بيانات تعديل الحساب',a:'تواصل مع الدعم الفني لتغيير بريد الدخول، أما اسم المستخدم فتعدّله من ملفك الشخصي.'}];
+const _n=t=>String(t||'').replace(/[\u064B-\u0652\u0640]/g,'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').toLowerCase();
+function botTog(){const p=document.getElementById('botP');const o=p.style.display!=='flex';p.style.display=o?'flex':'none';if(o)faqGo()}
+function faqAns(f){if(f.a!=='__SUB__')return f.a;try{if(TEN&&TEN.end)return 'ينتهي اشتراكك في: '+TEN.end+'. يظهر تنبيه قبل 15 يوماً من الانتهاء، وللتجديد تواصل مع الدعم.'}catch(e){}return 'تجد تاريخ انتهاء اشتراكك في التنبيه أعلى الشاشة، وللتجديد تواصل مع الدعم.'}
+function faqGo(){const m=document.getElementById('botM'),v=_n(document.getElementById('botI').value).trim();m.innerHTML='';
+let list;if(!v){list=FAQ.slice(0,6);faqHead(m,'أسئلة شائعة:')}else{const w=v.split(/\s+/).filter(x=>x.length>1);
+list=FAQ.map(f=>{const h=_n(f.q+' '+f.k+' '+f.a);let sc=0;w.forEach(x=>{if(_n(f.q).includes(x))sc+=3;else if(_n(f.k).includes(x))sc+=2;else if(h.includes(x))sc+=1});return[sc,f]}).filter(x=>x[0]>0).sort((a,b)=>b[0]-a[0]).slice(0,3).map(x=>x[1])}
+list.forEach(f=>{const d=document.createElement('details');d.style.cssText='background:#F6EBDD;border-radius:10px;padding:8px 10px';const q=document.createElement('summary');q.textContent=f.q;q.style.cssText='font-weight:700;cursor:pointer';const a=document.createElement('div');a.textContent=faqAns(f);a.style.cssText='margin-top:6px;line-height:1.7';d.append(q,a);if(v&&list.length===1)d.open=true;m.appendChild(d)});
+if(v&&!list.length)faqHead(m,'لم أجد إجابة مطابقة.');
+const b=document.createElement('button');b.textContent='💬 التحدث مع موظف الدعم';b.style.cssText='background:#25D366;color:#fff;border:0;border-radius:10px;padding:9px;margin-top:4px';b.onclick=()=>{try{window.open('https://wa.me/'+String(SUPPORT_PH).replace(/\D/g,'')+'?text='+encodeURIComponent('أحتاج مساعدة'+(v?': '+document.getElementById('botI').value:'')),'_blank')}catch(e){}};m.appendChild(b)}
+function faqHead(m,t){const h=document.createElement('div');h.textContent=t;h.style.cssText='color:#777;font-size:13px';m.appendChild(h)}
+setInterval(()=>{try{document.getElementById('bot').style.display=(auth.currentUser&&typeof ME!=='undefined'&&ME)?'block':'none'}catch(e){}},1500);
+</script>
 </body>
 </html>
